@@ -150,6 +150,11 @@ export default function DashboardLayout({ children }) {
                         <Link href="/dashboard/notifications" className={`nav-link ${isActive('/dashboard/notifications') ? 'active' : ''}`}>
                             <i className="fas fa-bell"></i><span>การแจ้งเตือน</span>
                         </Link>
+                        {user.role === 'admin' && (
+                            <Link href="/dashboard/settings/custom-fields" className={`nav-link ${isActive('/dashboard/settings/custom-fields') ? 'active' : ''}`}>
+                                <i className="fas fa-sliders-h"></i><span>Custom Fields</span>
+                            </Link>
+                        )}
                     </div>
 
                     <div className="nav-section">
