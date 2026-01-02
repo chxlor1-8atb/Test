@@ -12,10 +12,24 @@ export default function DashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [currentDate, setCurrentDate] = useState('');
 
     useEffect(() => {
         checkAuth();
+        updateDateTime();
+        const timer = setInterval(updateDateTime, 60000);
+        return () => clearInterval(timer);
     }, []);
+
+    const updateDateTime = () => {
+        const d = new Date();
+        setCurrentDate(d.toLocaleDateString('th-TH', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }));
+    };
 
     const checkAuth = async () => {
         try {
@@ -49,7 +63,12 @@ export default function DashboardLayout({ children }) {
 
     if (!user) return null;
 
-    const isActive = (path) => pathname === path || pathname.startsWith(path + '/');
+    // Helper to check active state more accurately
+    const isActive = (path) => {
+        if (path === '/dashboard' && pathname === '/dashboard') return true;
+        if (path !== '/dashboard' && pathname.startsWith(path)) return true;
+        return false;
+    };
 
     return (
         <div className="dashboard-container">
@@ -64,13 +83,18 @@ export default function DashboardLayout({ children }) {
                 <nav className="sidebar-nav">
                     <div className="nav-section">
                         <div className="nav-section-title">เมนูหลัก</div>
-                        <Link href="/dashboard" className={`nav-link ${pathname === '/dashboard' ? 'active' : ''}`}>
+                        <Link href="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>
                             <i className="fas fa-chart-pie"></i><span>Dashboard</span>
                         </Link>
-                        <Link href="/dashboard/shops" className={`nav-link ${pathname === '/dashboard/shops' ? 'active' : ''}`}>
+                        <Link href="/dashboard/expiring" className={`nav-link ${isActive('/dashboard/expiring') ? 'active' : ''}`}>
+                            <i className="fas fa-bell"></i>
+                            <span>ใบอนุญาตใกล้หมดอายุ</span>
+                            <span className="nav-badge" style={{ display: 'none' }}>0</span>
+                        </Link>
+                        <Link href="/dashboard/shops" className={`nav-link ${isActive('/dashboard/shops') ? 'active' : ''}`}>
                             <i className="fas fa-store"></i><span>ร้านค้า</span>
                         </Link>
-                        <Link href="/dashboard/licenses" className={`nav-link ${pathname === '/dashboard/licenses' ? 'active' : ''}`}>
+                        <Link href="/dashboard/licenses" className={`nav-link ${isActive('/dashboard/licenses') ? 'active' : ''}`}>
                             <i className="fas fa-file-alt"></i><span>ใบอนุญาต</span>
                         </Link>
                     </div>
@@ -79,22 +103,29 @@ export default function DashboardLayout({ children }) {
                         <div className="nav-section-title">จัดการระบบ</div>
                         {user.role === 'admin' && (
                             <>
-                                <Link href="/dashboard/users" className={`nav-link ${pathname === '/dashboard/users' ? 'active' : ''}`}>
+                                <Link href="/dashboard/users" className={`nav-link ${isActive('/dashboard/users') ? 'active' : ''}`}>
                                     <i className="fas fa-users"></i><span>ผู้ใช้งาน</span>
                                 </Link>
-                                <Link href="/dashboard/license-types" className={`nav-link ${pathname === '/dashboard/license-types' ? 'active' : ''}`}>
+                                <Link href="/dashboard/license-types" className={`nav-link ${isActive('/dashboard/license-types') ? 'active' : ''}`}>
                                     <i className="fas fa-tags"></i><span>ประเภทใบอนุญาต</span>
                                 </Link>
                             </>
                         )}
-                        <Link href="/dashboard/notifications" className={`nav-link ${pathname === '/dashboard/notifications' ? 'active' : ''}`}>
+                        <Link href="/dashboard/notifications" className={`nav-link ${isActive('/dashboard/notifications') ? 'active' : ''}`}>
                             <i className="fas fa-bell"></i><span>การแจ้งเตือน</span>
+                        </Link>
+                    </div>
+
+                    <div className="nav-section">
+                        <div className="nav-section-title">รายงาน</div>
+                        <Link href="/dashboard/export" className={`nav-link ${isActive('/dashboard/export') ? 'active' : ''}`}>
+                            <i className="fas fa-file-export"></i><span>ส่งออกข้อมูล</span>
                         </Link>
                     </div>
                 </nav>
                 <div className="sidebar-footer">
                     <div className="user-info">
-                        <div className="user-avatar">{user.full_name.charAt(0).toUpperCase()}</div>
+                        <div className="user-avatar">{user.full_name?.charAt(0).toUpperCase() || 'U'}</div>
                         <div className="user-details">
                             <div className="user-name">{user.full_name}</div>
                             <div className="user-role">{user.role === 'admin' ? 'ผู้ดูแลระบบ' : 'เจ้าหน้าที่'}</div>
@@ -119,7 +150,7 @@ export default function DashboardLayout({ children }) {
                         <h1 id="pageTitle">Dashboard</h1>
                     </div>
                     <div className="header-actions">
-                        <span>{new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        <span>{currentDate}</span>
                     </div>
                 </header>
                 <div className="content-body">

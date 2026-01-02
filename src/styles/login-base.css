@@ -112,7 +112,7 @@ html {
     text-size-adjust: 100%;
 }
 
-body {
+.login-body {
     font-family: 'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     min-height: 100vh;
     min-height: 100dvh;
@@ -127,7 +127,7 @@ body {
 
 /* iOS Safari viewport fix */
 @supports (-webkit-touch-callout: none) {
-    body {
+    .login-body {
         min-height: -webkit-fill-available;
     }
 }
@@ -137,7 +137,7 @@ body {
    ==================================== */
 
 /* Clean dark gradient background */
-body::before {
+.login-body::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -152,7 +152,7 @@ body::before {
 }
 
 /* Flowing light orb - top right (warm orange/gold) */
-body::after {
+.login-body::after {
     content: '';
     position: fixed;
     top: -10%;
@@ -209,7 +209,7 @@ body::after {
     }
 }
 
-.bg-shapes {
+.login-body .bg-shapes {
     position: fixed;
     inset: 0;
     overflow: hidden;
@@ -218,7 +218,7 @@ body::after {
 }
 
 /* Flowing light orb - bottom left (purple/violet) */
-.bg-shapes::before {
+.login-body .bg-shapes::before {
     content: '';
     position: absolute;
     bottom: -10%;
@@ -269,7 +269,7 @@ body::after {
 }
 
 /* Flowing light orb - center (teal/cyan accent) */
-.bg-shapes::after {
+.login-body .bg-shapes::after {
     content: '';
     position: absolute;
     top: 50%;
