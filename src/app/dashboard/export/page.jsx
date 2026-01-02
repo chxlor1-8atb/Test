@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Loading from '@/components/Loading';
+import DatePicker from '@/components/ui/DatePicker';
 
 export default function ExportPage() {
     const [type, setType] = useState('licenses');
@@ -112,11 +113,19 @@ export default function ExportPage() {
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'block' }}>หมดอายุจาก</label>
-                                        <input type="date" value={expiryFrom} onChange={(e) => setExpiryFrom(e.target.value)} />
+                                        <DatePicker
+                                            value={expiryFrom}
+                                            onChange={(e) => setExpiryFrom(e.target.value)}
+                                            placeholder="เลือกวันที่"
+                                        />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'block' }}>หมดอายุถึง</label>
-                                        <input type="date" value={expiryTo} onChange={(e) => setExpiryTo(e.target.value)} />
+                                        <DatePicker
+                                            value={expiryTo}
+                                            onChange={(e) => setExpiryTo(e.target.value)}
+                                            placeholder="เลือกวันที่"
+                                        />
                                     </div>
                                 </div>
                             </div>
