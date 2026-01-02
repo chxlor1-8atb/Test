@@ -125,8 +125,10 @@
                     document.getElementById('navUsers').style.display = 'flex';
                     document.getElementById('navLicenseTypes').style.display = 'flex';
                 }
-            } catch {
-                window.location.href = '/login.html';
+            } catch (error) {
+                alert('Auth Check Error: ' + error.message + '\n' + JSON.stringify(error));
+                console.error(error);
+                // window.location.href = '/login.html';
             }
         }
 

@@ -1,3 +1,6 @@
 {
-  "/api/auth/route": "app/api/auth/route.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/route": "app/api/auth/route.js",
+  "/api/license-types/route": "app/api/license-types/route.js",
+  "/api/dashboard/route": "app/api/dashboard/route.js"
 }

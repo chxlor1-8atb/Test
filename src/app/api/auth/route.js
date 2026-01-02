@@ -94,13 +94,11 @@ async function handleLogin(request) {
     return NextResponse.json({
         success: true,
         message: 'เข้าสู่ระบบสำเร็จ',
-        data: {
-            user: {
-                id: user.id,
-                username: user.username,
-                full_name: user.full_name,
-                role: user.role,
-            },
+        user: {
+            id: user.id,
+            username: user.username,
+            full_name: user.full_name,
+            role: user.role,
         },
     });
 }
@@ -121,13 +119,11 @@ async function checkAuth() {
         return NextResponse.json({
             success: true,
             message: 'Authenticated',
-            data: {
-                user: {
-                    id: session.userId,
-                    username: session.username,
-                    full_name: session.fullName,
-                    role: session.role,
-                },
+            user: {
+                id: session.userId,
+                username: session.username,
+                full_name: session.fullName,
+                role: session.role,
             },
         });
     }
