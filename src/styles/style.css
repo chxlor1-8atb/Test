@@ -2574,19 +2574,22 @@ body:has(.sidebar.show) .mobile-toggle i {
     }
 }
 
-/* Modal Styles */
+/* Modal Styles - Fixed Centering */
 .modal-overlay {
     display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
     align-items: center;
     justify-content: center;
+    padding: 1rem;
 }
 
 .modal-overlay.show {
@@ -2598,12 +2601,13 @@ body:has(.sidebar.show) .mobile-toggle i {
     backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
     border-radius: var(--border-radius-lg);
-    width: 90%;
+    width: 100%;
     max-width: 600px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
+    margin: auto;
 }
 
 .modal-header {
@@ -2644,7 +2648,8 @@ body:has(.sidebar.show) .mobile-toggle i {
 
 .modal-body {
     padding: 1.5rem;
-    overflow-y: auto;
+    overflow-y: visible;
+    overflow-x: visible;
     flex: 1;
 }
 
@@ -3536,7 +3541,7 @@ body:has(.sidebar.show) .mobile-toggle i {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-lg);
-    z-index: 1000;
+    z-index: 9999;
     overflow: hidden;
     opacity: 0;
     visibility: hidden;
@@ -4240,7 +4245,7 @@ div:where(.swal2-container) .swal2-close:hover {
     border: 1px solid var(--glass-border);
     border-radius: var(--border-radius-lg);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
+    z-index: 9999;
     overflow: hidden;
     animation: datepickerSlideIn 0.2s ease;
 }
