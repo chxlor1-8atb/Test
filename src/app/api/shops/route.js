@@ -32,10 +32,6 @@ export async function GET(request) {
         }
 
         const countQuery = `SELECT COUNT(*) as total FROM shops ${whereClause}`;
-        const countResult = await fetchOne(countQuery, params);
-        const total = parseInt(countResult?.total || 0, 10);
-        const totalPages = Math.ceil(total / limit);
-
         const query = `
             SELECT s.*, 
             (SELECT COUNT(*) FROM licenses l WHERE l.shop_id = s.id AND l.status = 'active') as license_count
@@ -45,14 +41,13 @@ export async function GET(request) {
             LIMIT ${limit} OFFSET ${offset}
         `;
 
-        // Adjust params for the second query if search is present
-        // If search is present, params has 1 element.
-        // LIMIT and OFFSET should be injected directly or appended to params?
-        // fetchAll uses pg query, supports numbered params.
-        // If using variables for limit/offset, they need indices.
-        // Simpler to inject integers for limit/offset since they are parsed securely above.
+        const [countResult, shops] = await Promise.all([
+            fetchOne(countQuery, params),
+            fetchAll(query, params)
+        ]);
 
-        const shops = await fetchAll(query, params);
+        const total = parseInt(countResult?.total || 0, 10);
+        const totalPages = Math.ceil(total / limit);
 
         return NextResponse.json({
             success: true,

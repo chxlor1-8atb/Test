@@ -218,21 +218,22 @@ export default function ExpiringPage() {
                     </table>
                 </div>
 
-                {totalPages > 1 && (
-                    <div className="pagination" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'end', gap: '0.5rem' }}>
+                {/* Simple Pagination */}
+                {(totalPages > 1 || page > 1) && (
+                    <div className="pagination">
                         <button
-                            className="btn btn-secondary btn-sm"
+                            className="btn-page"
                             disabled={page === 1}
                             onClick={() => setPage(page - 1)}
                         >
                             ก่อนหน้า
                         </button>
-                        <span style={{ display: 'flex', alignItems: 'center' }}>
-                            หน้า {page} / {totalPages}
+                        <span className="page-info">
+                            หน้า {page} / {totalPages || 1}
                         </span>
                         <button
-                            className="btn btn-secondary btn-sm"
-                            disabled={page === totalPages}
+                            className="btn-page"
+                            disabled={page >= totalPages}
                             onClick={() => setPage(page + 1)}
                         >
                             ถัดไป

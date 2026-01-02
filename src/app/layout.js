@@ -3,6 +3,9 @@ import './globals.css';
 export const metadata = {
     title: 'ระบบจัดการใบอนุญาตร้านค้า',
     description: 'Shop License Management System',
+    icons: {
+        icon: '/favicon.png',
+    },
 };
 
 export default function RootLayout({ children }) {

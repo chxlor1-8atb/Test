@@ -55,12 +55,8 @@ export async function GET(request) {
             LEFT JOIN shops s ON l.shop_id = s.id
             ${whereSQL}
         `;
-        const countResult = await fetchOne(countQuery, params);
-        const total = parseInt(countResult?.total || 0, 10);
-        const totalPages = Math.ceil(total / limit);
 
-        // We can't inject limit/offset as params easily if we built param array dynamically differently
-        // But let's just use string interpolation for limit/offset since they are safe ints
+        // Parallelize Count and Data Fetch
         const query = `
             SELECT l.*, s.shop_name, lt.name as type_name
             FROM licenses l
@@ -71,7 +67,13 @@ export async function GET(request) {
             LIMIT ${limit} OFFSET ${offset}
         `;
 
-        const licenses = await fetchAll(query, params);
+        const [countResult, licenses] = await Promise.all([
+            fetchOne(countQuery, params),
+            fetchAll(query, params)
+        ]);
+
+        const total = parseInt(countResult?.total || 0, 10);
+        const totalPages = Math.ceil(total / limit);
 
         return NextResponse.json({
             success: true,

@@ -221,19 +221,19 @@ export default function ShopsPage() {
 
                     {/* Simple Pagination */}
                     {(pagination.totalPages > 1 || pagination.page > 1) && (
-                        <div className="pagination" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'end', gap: '0.5rem' }}>
+                        <div className="pagination">
                             <button
-                                className="btn btn-secondary btn-sm"
+                                className="btn-page"
                                 disabled={pagination.page === 1}
                                 onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
                             >
                                 ก่อนหน้า
                             </button>
-                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                            <span className="page-info">
                                 หน้า {pagination.page} / {pagination.totalPages || 1}
                             </span>
                             <button
-                                className="btn btn-secondary btn-sm"
+                                className="btn-page"
                                 disabled={pagination.page >= pagination.totalPages}
                                 onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                             >
