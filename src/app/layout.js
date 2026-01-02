@@ -21,17 +21,10 @@ export default function RootLayout({ children }) {
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-                {/* Font Awesome - load async with preload hint */}
-                <link
-                    rel="preload"
-                    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-                    as="style"
-                />
+                {/* Font Awesome - standard loading */}
                 <link
                     rel="stylesheet"
                     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-                    media="print"
-                    onLoad="this.media='all'"
                 />
 
                 {/* Google Fonts - optimized with display=swap */}

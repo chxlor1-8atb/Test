@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
+import Loading, { CardSkeleton } from '@/components/Loading';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -39,7 +40,7 @@ export default function DashboardPage() {
         }
     };
 
-    if (loading) return <div>กำลังโหลดข้อมูล...</div>;
+    if (loading) return <Loading message="กำลังโหลดข้อมูลแดชบอร์ด..." />;
     if (error) return <div className="error-message">{error}</div>;
     if (!stats) return null;
 
