@@ -2493,7 +2493,9 @@ body:has(.sidebar.show) .mobile-toggle i {
 
 .form-group input,
 .form-group select,
-.form-group textarea {
+.form-group textarea,
+.filter-row input,
+.filter-row select {
     width: 100%;
     padding: 0.625rem 0.875rem;
     border: 1px solid var(--glass-border);
@@ -2502,6 +2504,8 @@ body:has(.sidebar.show) .mobile-toggle i {
     color: var(--text-primary);
     font-size: 0.875rem;
     transition: all var(--transition);
+    box-sizing: border-box;
+    height: 42px;
 }
 
 .form-group input:focus,
