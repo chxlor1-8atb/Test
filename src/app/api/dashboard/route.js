@@ -29,6 +29,8 @@ export async function GET(request) {
                 return await getExpiringCount();
             case 'license_breakdown':
                 return await getLicenseBreakdown();
+            case 'recent_activity':
+                return await getRecentActivity();
             default:
                 return await getStats();
         }
@@ -101,4 +103,15 @@ async function getExpiringCount() {
         success: true,
         count: parseInt(result?.count || 0)
     });
+}
+
+async function getRecentActivity() {
+    const activities = await fetchAll(`
+        SELECT a.*, COALESCE(u.full_name, 'System') as user_name 
+        FROM audit_logs a
+        LEFT JOIN users u ON a.user_id = u.id
+        ORDER BY a.created_at DESC 
+        LIMIT 10
+    `);
+    return NextResponse.json({ success: true, activities });
 }

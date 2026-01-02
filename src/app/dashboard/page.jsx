@@ -11,6 +11,7 @@ export default function DashboardPage() {
     const [stats, setStats] = useState(null);
     const [breakdown, setBreakdown] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [recentActivity, setRecentActivity] = useState([]);
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -18,20 +19,33 @@ export default function DashboardPage() {
     }, []);
 
     const fetchData = async () => {
+        const validJsonOrNull = async (res) => {
+            try { return await res.json(); } catch (e) { return null; }
+        };
         try {
             const [statsRes, breakdownRes] = await Promise.all([
                 fetch('/api/dashboard?action=stats'),
-                fetch('/api/dashboard?action=license_breakdown')
+                fetch('/api/dashboard?action=stats'),
+                fetch('/api/dashboard?action=license_breakdown'),
+                fetch('/api/dashboard?action=recent_activity')
             ]);
 
             const statsData = await statsRes.json();
             const breakdownData = await breakdownRes.json();
+            // Handle activity response safely as it might fail
+            const activityData = await validJsonOrNull(recentRes);
 
             if (statsData.success) {
                 setStats(statsData.stats);
             }
             if (breakdownData.success || breakdownData.breakdown) {
                 setBreakdown(breakdownData.breakdown || []);
+            }
+            if (activityData && activityData.success) {
+                setRecentActivity(activityData.activities || []);
+            }
+            if (activityData && activityData.success) {
+                setRecentActivity(activityData.activities || []);
             }
         } catch (err) {
             setError(err.message);
@@ -118,20 +132,59 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            <div className="dashboard-charts">
-                <div className="card chart-card">
-                    <div className="card-header"><h3 className="card-title"><i className="fas fa-chart-pie"></i> สัดส่วนใบอนุญาตแต่ละประเภท</h3></div>
-                    <div className="card-body" style={{ height: '300px', display: 'flex', justifyContent: 'center' }}>
-                        <Pie data={pieData} options={{ responsive: true, maintainAspectRatio: false }} />
-                    </div>
-                </div>
-                <div className="card chart-card">
-                    <div className="card-header"><h3 className="card-title"><i className="fas fa-chart-bar"></i> สถานะใบอนุญาตตามประเภท</h3></div>
-                    <div className="card-body" style={{ height: '300px' }}>
-                        <Bar data={barData} options={{ responsive: true, maintainAspectRatio: false, scales: { x: { stacked: false }, y: { stacked: false } } }} />
-                    </div>
+            <div className="card chart-card">
+                <div className="card-header"><h3 className="card-title"><i className="fas fa-chart-bar"></i> สถานะใบอนุญาตตามประเภท</h3></div>
+                <div className="card-body" style={{ height: '300px' }}>
+                    <Bar data={barData} options={{ responsive: true, maintainAspectRatio: false, scales: { x: { stacked: false }, y: { stacked: false } } }} />
                 </div>
             </div>
         </div>
+
+            {/* Recent Activity Widget */ }
+    <div className="card chart-card" style={{ marginTop: '1.5rem' }}>
+        <div className="card-header">
+            <h3 className="card-title"><i className="fas fa-history"></i> ประวัติการใช้งานล่าสุด</h3>
+        </div>
+        <div className="card-body">
+            <div className="table-responsive">
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>เวลา</th>
+                            <th>ผู้ใช้งาน</th>
+                            <th>กิจกรรม</th>
+                            <th>รายละเอียด</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {recentActivity.length > 0 ? recentActivity.map((log) => (
+                            <tr key={log.id}>
+                                <td>{new Date(log.created_at).toLocaleString('th-TH')}</td>
+                                <td>
+                                    <div className="user-info-cell" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <div className="user-avatar-small" style={{ width: 24, height: 24, borderRadius: '50%', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>
+                                            {(log.user_name || 'S').charAt(0)}
+                                        </div>
+                                        {log.user_name}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span className={`badge ${log.action === 'LOGIN' ? 'badge-success' : log.action === 'DELETE' ? 'badge-danger' : 'badge-info'}`}>
+                                        {log.action}
+                                    </span>
+                                </td>
+                                <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {log.entity_type} {log.entity_id ? `#${log.entity_id}` : ''}
+                                </td>
+                            </tr>
+                        )) : (
+                            <tr><td colSpan="4" className="text-center">ไม่มีข้อมูลกิจกรรมล่าสุด</td></tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     );
+}
 }
