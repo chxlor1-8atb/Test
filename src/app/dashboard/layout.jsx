@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
+import '../../styles/style.css';
 
 export default function DashboardLayout({ children }) {
     const router = useRouter();

@@ -3,6 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
+import '../../styles/login-base.css';
+import '../../styles/login-responsive.css';
+import '../../styles/login-slide.css';
 
 export default function LoginPage() {
     const router = useRouter();
