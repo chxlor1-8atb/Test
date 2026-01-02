@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
+import Swal from 'sweetalert2';
 import '../../styles/style.css';
 
 export default function DashboardLayout({ children }) {
@@ -13,13 +14,30 @@ export default function DashboardLayout({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState('');
+    const [expiringCount, setExpiringCount] = useState(0);
 
     useEffect(() => {
-        checkAuth();
+        const init = async () => {
+            await checkAuth();
+            fetchExpiringCount();
+        };
+        init();
         updateDateTime();
         const timer = setInterval(updateDateTime, 60000);
         return () => clearInterval(timer);
     }, []);
+
+    const fetchExpiringCount = async () => {
+        try {
+            const res = await fetch('/api/dashboard?action=stats');
+            const data = await res.json();
+            if (data.success) {
+                setExpiringCount(data.stats.expiring_soon || 0);
+            }
+        } catch (error) {
+            console.error('Failed to fetch stats', error);
+        }
+    };
 
     const updateDateTime = () => {
         const d = new Date();
@@ -48,9 +66,21 @@ export default function DashboardLayout({ children }) {
     };
 
     const handleLogout = async () => {
-        if (!confirm('ยืนยันออกจากระบบ?')) return;
-        await fetch('/api/auth?action=logout', { method: 'POST' });
-        router.push('/login');
+        const result = await Swal.fire({
+            title: 'ยืนยันการออกจากระบบ',
+            text: "คุณต้องการออกจากระบบหรือไม่?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ออกจากระบบ',
+            cancelButtonText: 'ยกเลิก'
+        });
+
+        if (result.isConfirmed) {
+            await fetch('/api/auth?action=logout', { method: 'POST' });
+            router.push('/login');
+        }
     };
 
     if (loading) {
@@ -89,7 +119,7 @@ export default function DashboardLayout({ children }) {
                         <Link href="/dashboard/expiring" className={`nav-link ${isActive('/dashboard/expiring') ? 'active' : ''}`}>
                             <i className="fas fa-bell"></i>
                             <span>ใบอนุญาตใกล้หมดอายุ</span>
-                            <span className="nav-badge" style={{ display: 'none' }}>0</span>
+                            {expiringCount > 0 && <span className="nav-badge" style={{ display: 'inline' }}>{expiringCount}</span>}
                         </Link>
                         <Link href="/dashboard/shops" className={`nav-link ${isActive('/dashboard/shops') ? 'active' : ''}`}>
                             <i className="fas fa-store"></i><span>ร้านค้า</span>

@@ -1,166 +1,155 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { getIronSession } from 'iron-session';
-import { sessionOptions } from '@/lib/session';
-import { fetchOne, fetchAll, update, insert } from '@/lib/db';
-import { TelegramService } from '@/lib/telegram';
-import { NotificationService } from '@/lib/notification-service';
+import { executeQuery, fetchOne, fetchAll } from '@/lib/db';
 
-export const dynamic = 'force-dynamic';
+async function sendTelegramMessage(token, chatId, message) {
+    if (!token || !chatId) throw new Error('Token or Chat ID missing');
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'HTML'
+        })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.description || 'Telegram API Error');
+    return data;
+}
 
 export async function GET(request) {
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
+
     try {
-        const session = await getSession();
-        if (!session.userId) {
-            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-        }
-
-        const { searchParams } = new URL(request.url);
-        const action = searchParams.get('action') || 'settings';
-
         if (action === 'settings') {
-            return await handleGetSettings();
-        } else if (action === 'logs') {
-            return await handleGetLogs();
+            const settings = await fetchOne('SELECT * FROM notification_settings LIMIT 1');
+            return NextResponse.json({
+                success: true,
+                settings: settings || { days_before_expiry: 30, is_active: false }
+            });
         }
 
-        return NextResponse.json({ success: false, message: 'Invalid action' });
+        if (action === 'logs') {
+            const logs = await fetchAll('SELECT * FROM notification_logs ORDER BY sent_at DESC LIMIT 50');
+            return NextResponse.json({ success: true, logs });
+        }
+
+        return NextResponse.json({ success: false, message: 'Invalid action' }, { status: 400 });
+
     } catch (error) {
-        console.error('Notification API GET Error:', error);
+        console.error('Database error:', error);
         return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     }
 }
 
 export async function POST(request) {
-    const session = await getSession();
-    if (!session.userId) {
-        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
-
     try {
+        const body = await request.json();
+        const { action } = body;
+
         if (action === 'save_settings') {
-            if (session.role !== 'admin') {
-                return NextResponse.json({ success: false, message: 'Admin access required' }, { status: 403 });
-            }
-            return await handleSaveSettings(request);
-        } else if (action === 'test') {
-            return await handleTestNotification();
-        } else if (action === 'check-expiring' || action === 'send_expiry') {
-            return await handleCheckExpiring();
+            const { telegram_bot_token, telegram_chat_id, days_before_expiry, is_active } = body;
+
+            // Mask or update token? Front-end logic handles masking usually.
+            // If token is empty string, maybe don't update it? Original JS sends simplified/masked token logic?
+            // "กรอกเฉพาะเมื่อต้องการเปลี่ยนแปลง Token" - implies frontend sends basic masked string if unchanged.
+            // But here we just update what we get. The SQL UPDATE should handle it.
+            // Actually, let's fetch existing first.
+
+            const existing = await fetchOne('SELECT * FROM notification_settings LIMIT 1');
+            let newToken = telegram_bot_token;
+            if (!newToken && existing) newToken = existing.telegram_bot_token;
+
+            // Update
+            await executeQuery(
+                `UPDATE notification_settings SET 
+                 telegram_bot_token = $1, 
+                 telegram_chat_id = $2, 
+                 days_before_expiry = $3, 
+                 is_active = $4,
+                 updated_at = NOW()
+                 WHERE id = (SELECT id FROM notification_settings LIMIT 1)`,
+                [newToken, telegram_chat_id, days_before_expiry, is_active]
+            );
+
+            return NextResponse.json({ success: true, message: 'บันทึกการตั้งค่าเรียบร้อย' });
         }
 
-        return NextResponse.json({ success: false, message: 'Invalid action' });
+        if (action === 'test') {
+            const settings = await fetchOne('SELECT * FROM notification_settings LIMIT 1');
+            if (!settings || !settings.telegram_bot_token || !settings.telegram_chat_id) {
+                return NextResponse.json({ success: false, message: 'ยังไม่ได้ตั้งค่า Telegram' });
+            }
+
+            try {
+                await sendTelegramMessage(
+                    settings.telegram_bot_token,
+                    settings.telegram_chat_id,
+                    '🔔 <b>Test Notification</b>\nทดสอบการแจ้งเตือนจากระบบ Shop License'
+                );
+                return NextResponse.json({ success: true, message: 'ส่งข้อความทดสอบสำเร็จ' });
+            } catch (err) {
+                return NextResponse.json({ success: false, message: 'ส่งข้อความไม่สำเร็จ: ' + err.message });
+            }
+        }
+
+        if (action === 'check-expiring') {
+            const settings = await fetchOne('SELECT * FROM notification_settings LIMIT 1');
+            if (!settings || !settings.is_active) {
+                return NextResponse.json({ success: false, message: 'การแจ้งเตือนถูกปิดอยู่' });
+            }
+
+            // Find expiring licenses
+            const days = settings.days_before_expiry || 30;
+            const expiringLicenses = await fetchAll(`
+                SELECT l.*, s.shop_name, t.type_name 
+                FROM licenses l
+                JOIN shops s ON l.shop_id = s.id
+                JOIN license_types t ON l.license_type_id = t.id
+                WHERE l.status = 'active'
+                AND l.expire_date <= (CURRENT_DATE + interval '${days} days')
+                AND l.expire_date >= CURRENT_DATE
+            `);
+
+            let sentCount = 0;
+            let errorCount = 0;
+
+            for (const license of expiringLicenses) {
+                const daysLeft = Math.ceil((new Date(license.expire_date) - new Date()) / (1000 * 60 * 60 * 24));
+                const message = `⚠️ <b>แจ้งเตือนใบอนุญาตใกล้หมดอายุ</b>\n\n` +
+                    `ร้านค้า: <b>${license.shop_name}</b>\n` +
+                    `ประเภท: ${license.type_name}\n` +
+                    `หมดอายุ: ${new Date(license.expire_date).toLocaleDateString('th-TH')}\n` +
+                    `เหลือเวลา: ${daysLeft} วัน`;
+
+                try {
+                    await sendTelegramMessage(settings.telegram_bot_token, settings.telegram_chat_id, message);
+                    await executeQuery(
+                        `INSERT INTO notification_logs (shop_name, status, message) VALUES ($1, 'success', $2)`,
+                        [license.shop_name, message]
+                    );
+                    sentCount++;
+                } catch (err) {
+                    await executeQuery(
+                        `INSERT INTO notification_logs (shop_name, status, message) VALUES ($1, 'error', $2)`,
+                        [license.shop_name, err.message]
+                    );
+                    errorCount++;
+                }
+            }
+
+            return NextResponse.json({
+                success: true,
+                message: `ส่งการแจ้งเตือนสำเร็จ ${sentCount} รายการ (ผิดพลาด ${errorCount} รายการ)`
+            });
+        }
+
+        return NextResponse.json({ success: false, message: 'Invalid action' }, { status: 400 });
+
     } catch (error) {
-        console.error('Notification API POST Error:', error);
+        console.error('API Error:', error);
         return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     }
-}
-
-async function getSession() {
-    const cookieStore = await cookies();
-    return await getIronSession(cookieStore, sessionOptions);
-}
-
-// --- Handlers ---
-
-async function handleGetSettings() {
-    let settings = await fetchOne("SELECT * FROM notification_settings WHERE id = 1");
-
-    if (!settings) {
-        // Create default if not exists
-        await insert('notification_settings', { id: 1, days_before_expiry: 30, is_active: false });
-        settings = await fetchOne("SELECT * FROM notification_settings WHERE id = 1");
-    }
-
-    // Mask token
-    if (settings && settings.telegram_bot_token) {
-        const token = settings.telegram_bot_token;
-        const start = token.substring(0, 4);
-        const end = token.substring(token.length - 4);
-        settings.telegram_bot_token_masked = `${start}...${end}`;
-    }
-
-    return NextResponse.json({ success: true, settings });
-}
-
-async function handleGetLogs() {
-    // Check if table exists (optional, but handled by try/catch now)
-    const logs = await fetchAll(`
-        SELECT nl.*, l.license_number, s.shop_name
-        FROM notification_logs nl
-        LEFT JOIN licenses l ON nl.license_id = l.id
-        LEFT JOIN shops s ON l.shop_id = s.id
-        ORDER BY nl.sent_at DESC
-        LIMIT 50
-    `);
-
-    return NextResponse.json({ success: true, logs });
-}
-
-async function handleSaveSettings(request) {
-    const data = await request.json();
-
-    // Prepare update data
-    const updateData = {
-        days_before_expiry: parseInt(data.days_before_expiry || 30),
-        is_active: data.is_active ? true : false
-    };
-
-    if (data.telegram_bot_token) {
-        updateData.telegram_bot_token = data.telegram_bot_token;
-    }
-
-    if (data.telegram_chat_id) {
-        updateData.telegram_chat_id = data.telegram_chat_id;
-    }
-
-    const exists = await fetchOne("SELECT id FROM notification_settings WHERE id = 1");
-    if (exists) {
-        await update('notification_settings', updateData, 'id = $1', [1]);
-    } else {
-        updateData.id = 1;
-        await insert('notification_settings', updateData);
-    }
-
-    return NextResponse.json({ success: true, message: 'บันทึกการตั้งค่าสำเร็จ' });
-}
-
-async function handleTestNotification() {
-    const { telegramService, notificationService } = await getServices();
-
-    // Validate config first
-    if (!telegramService.botToken || !telegramService.chatId) {
-        return NextResponse.json({ success: false, message: 'กรุณาตั้งค่า Telegram Bot Token และ Chat ID ก่อน' });
-    }
-
-    const result = await notificationService.sendTestNotification();
-    return NextResponse.json(result);
-}
-
-async function handleCheckExpiring() {
-    const { telegramService, notificationService } = await getServices();
-
-    // Validate config
-    if (!telegramService.botToken || !telegramService.chatId) {
-        return NextResponse.json({ success: false, message: 'กรุณาตั้งค่า Telegram Bot Token และ Chat ID ก่อน' });
-    }
-
-    const result = await notificationService.checkAndSendExpiryNotifications();
-    return NextResponse.json(result);
-}
-
-async function getServices() {
-    let settings = await fetchOne("SELECT * FROM notification_settings WHERE id = 1");
-    if (!settings) {
-        await insert('notification_settings', { id: 1, days_before_expiry: 30, is_active: 0 });
-        settings = await fetchOne("SELECT * FROM notification_settings WHERE id = 1");
-    }
-
-    const telegramService = new TelegramService(settings.telegram_bot_token, settings.telegram_chat_id);
-    const notificationService = new NotificationService(telegramService, settings);
-
-    return { telegramService, notificationService };
 }
