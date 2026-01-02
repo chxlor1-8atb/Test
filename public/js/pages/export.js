@@ -12,7 +12,7 @@ window.PageModules['export'] = {
 
 async function renderExport() {
     // Load license types for filter
-    const res = await fetch('api/license-types.php');
+    const res = await fetch('/api/license-types');
     const data = await res.json();
     exportLicenseTypes = data.types || [];
 
@@ -105,6 +105,6 @@ window.exportData = function (format) {
     }
 
     // Open CSV export in new window
-    window.open(`api/export.php?${params.toString()}`, '_blank');
+    window.open(`/api/export?${params.toString()}`, '_blank');
     showToast('กำลังดาวน์โหลดไฟล์...', 'info');
 }

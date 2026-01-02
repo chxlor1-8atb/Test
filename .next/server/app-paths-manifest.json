@@ -1,6 +1,6 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
+  "/api/notifications/route": "app/api/notifications/route.js",
   "/api/auth/route": "app/api/auth/route.js",
-  "/api/license-types/route": "app/api/license-types/route.js",
-  "/api/dashboard/route": "app/api/dashboard/route.js"
+  "/api/export/route": "app/api/export/route.js",
+  "/api/license-types/route": "app/api/license-types/route.js"
 }

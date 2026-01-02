@@ -15,7 +15,7 @@ async function renderNotifications() {
     content.innerHTML = getLoadingHTML();
 
     try {
-        const res = await fetch('api/notifications.php?action=settings');
+        const res = await fetch('/api/notifications?action=settings');
         const data = await res.json();
         notificationSettings = data.settings || {};
 
@@ -75,7 +75,7 @@ window.saveNotificationSettings = async function () {
     const data = Object.fromEntries(formData);
     data.is_active = form.querySelector('[name="is_active"]').checked ? 1 : 0;
 
-    const res = await fetch('api/notifications.php?action=save_settings', {
+    const res = await fetch('/api/notifications?action=save_settings', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
     });
     const result = await res.json();
@@ -84,21 +84,21 @@ window.saveNotificationSettings = async function () {
 };
 
 window.testNotification = async function () {
-    const res = await fetch('api/notifications.php?action=test');
+    const res = await fetch('/api/notifications?action=test', { method: 'POST' });
     const data = await res.json();
     showToast(data.message, data.success ? 'success' : 'error');
 };
 
 window.sendExpiryNotifications = async function () {
     if (!confirm('ต้องการส่งการแจ้งเตือนใบอนุญาตใกล้หมดอายุหรือไม่?')) return;
-    const res = await fetch('api/notifications.php?action=check-expiring');
+    const res = await fetch('/api/notifications?action=check-expiring', { method: 'POST' });
     const data = await res.json();
     showToast(data.message, data.success ? 'success' : 'error');
     if (data.success) loadNotificationLogs();
 };
 
 async function loadNotificationLogs() {
-    const res = await fetch('api/notifications.php?action=logs');
+    const res = await fetch('/api/notifications?action=logs');
     const data = await res.json();
     const logs = data.logs || [];
 

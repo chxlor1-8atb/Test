@@ -53,9 +53,9 @@ export async function POST(request) {
         }
 
         const id = await insert('license_types', {
-            name: data.name,
+            type_name: data.name,
             description: data.description || null,
-            validity_days: data.validity_days || 365
+            validity_period: data.validity_days || 365
         });
 
         return NextResponse.json({ success: true, message: 'เพิ่มประเภทใบอนุญาตสำเร็จ', id });
@@ -79,10 +79,10 @@ export async function PUT(request) {
         }
 
         await update('license_types', {
-            name: data.name,
+            type_name: data.name,
             description: data.description || null,
-            validity_days: data.validity_days || 365
-        }, 'id = ?', [data.id]);
+            validity_period: data.validity_days || 365
+        }, 'id = $1', [data.id]);
 
         return NextResponse.json({ success: true, message: 'แก้ไขประเภทใบอนุญาตสำเร็จ' });
     } catch (err) {
@@ -115,7 +115,7 @@ export async function DELETE(request) {
             return NextResponse.json({ success: false, message: 'ไม่สามารถลบได้ เนื่องจากมีใบอนุญาตใช้ประเภทนี้อยู่' });
         }
 
-        await remove('license_types', 'id = ?', [id]);
+        await remove('license_types', 'id = $1', [id]);
 
         return NextResponse.json({ success: true, message: 'ลบประเภทใบอนุญาตสำเร็จ' });
     } catch (err) {
