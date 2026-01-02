@@ -111,8 +111,36 @@ export default function LicenseTypesPage() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const totalTypes = types.length;
+    const totalLicenses = types.reduce((acc, curr) => acc + parseInt(curr.license_count || 0), 0);
+    const activeTypes = types.filter(t => parseInt(t.license_count) > 0).length;
+
     return (
         <>
+            <div className="stats-grid" style={{ marginBottom: '1.5rem' }}>
+                <div className="stat-card">
+                    <div className="stat-icon primary"><i className="fas fa-tags"></i></div>
+                    <div className="stat-content">
+                        <div className="stat-value">{totalTypes}</div>
+                        <div className="stat-label">ประเภททั้งหมด</div>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-icon success"><i className="fas fa-check-circle"></i></div>
+                    <div className="stat-content">
+                        <div className="stat-value">{activeTypes}</div>
+                        <div className="stat-label">ประเภทที่ใช้งาน</div>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-icon info"><i className="fas fa-file-alt"></i></div>
+                    <div className="stat-content">
+                        <div className="stat-value">{totalLicenses}</div>
+                        <div className="stat-label">ใบอนุญาตที่ผูก</div>
+                    </div>
+                </div>
+            </div>
+
             <div className="card">
                 <div className="card-header">
                     <h3 className="card-title"><i className="fas fa-tags"></i> ประเภทใบอนุญาต</h3>

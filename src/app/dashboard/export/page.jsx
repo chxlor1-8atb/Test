@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 export default function ExportPage() {
     const [type, setType] = useState('licenses');
@@ -63,15 +64,16 @@ export default function ExportPage() {
                 <form onSubmit={(e) => { e.preventDefault(); handleExport(); }}>
                     <div className="form-group">
                         <label>เลือกประเภทข้อมูล *</label>
-                        <select
+                        <CustomSelect
                             value={type}
                             onChange={(e) => setType(e.target.value)}
-                            required
-                        >
-                            <option value="licenses">ใบอนุญาต</option>
-                            <option value="shops">ร้านค้า</option>
-                            <option value="users">ผู้ใช้งาน</option>
-                        </select>
+                            options={[
+                                { value: 'licenses', label: 'ใบอนุญาต' },
+                                { value: 'shops', label: 'ร้านค้า' },
+                                { value: 'users', label: 'ผู้ใช้งาน' }
+                            ]}
+                            placeholder="เลือกประเภทข้อมูล"
+                        />
                     </div>
 
                     {type === 'licenses' && (
@@ -80,21 +82,31 @@ export default function ExportPage() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                                 <div>
                                     <label style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'block' }}>ประเภทใบอนุญาต</label>
-                                    <select value={licenseType} onChange={(e) => setLicenseType(e.target.value)}>
-                                        <option value="">ทั้งหมด</option>
-                                        {typesList.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                                    </select>
+                                    <CustomSelect
+                                        value={licenseType}
+                                        onChange={(e) => setLicenseType(e.target.value)}
+                                        options={[
+                                            { value: '', label: 'ทั้งหมด' },
+                                            ...typesList.map(t => ({ value: t.id, label: t.name }))
+                                        ]}
+                                        placeholder="ทั้งหมด"
+                                    />
                                 </div>
                                 <div>
                                     <label style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'block' }}>สถานะ</label>
-                                    <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                                        <option value="">ทั้งหมด</option>
-                                        <option value="active">ปกติ</option>
-                                        <option value="expired">หมดอายุ</option>
-                                        <option value="pending">กำลังดำเนินการ</option>
-                                        <option value="suspended">ถูกพักใช้</option>
-                                        <option value="revoked">ถูกเพิกถอน</option>
-                                    </select>
+                                    <CustomSelect
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value)}
+                                        options={[
+                                            { value: '', label: 'ทั้งหมด' },
+                                            { value: 'active', label: 'ปกติ' },
+                                            { value: 'expired', label: 'หมดอายุ' },
+                                            { value: 'pending', label: 'กำลังดำเนินการ' },
+                                            { value: 'suspended', label: 'ถูกพักใช้' },
+                                            { value: 'revoked', label: 'ถูกเพิกถอน' }
+                                        ]}
+                                        placeholder="ทั้งหมด"
+                                    />
                                 </div>
                                 <div>
                                     <label style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'block' }}>หมดอายุจาก</label>

@@ -29,10 +29,10 @@ export default function DashboardLayout({ children }) {
 
     const fetchExpiringCount = async () => {
         try {
-            const res = await fetch('/api/dashboard?action=stats');
+            const res = await fetch('/api/dashboard?action=expiring_count');
             const data = await res.json();
             if (data.success) {
-                setExpiringCount(data.stats.expiring_soon || 0);
+                setExpiringCount(data.count || 0);
             }
         } catch (error) {
             console.error('Failed to fetch stats', error);

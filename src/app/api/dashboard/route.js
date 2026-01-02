@@ -25,6 +25,8 @@ export async function GET(request) {
         switch (action) {
             case 'stats':
                 return await getStats();
+            case 'expiring_count':
+                return await getExpiringCount();
             case 'license_breakdown':
                 return await getLicenseBreakdown();
             default:
@@ -40,46 +42,29 @@ export async function GET(request) {
 }
 
 async function getStats() {
-    // Total shops
-    const shopsResult = await fetchOne('SELECT COUNT(*) as count FROM shops');
-    const totalShops = parseInt(shopsResult?.count || 0);
+    // Optimized: Fetch all stats in a single database round-trip
+    const query = `
+        SELECT 
+            (SELECT COUNT(*) FROM shops) as total_shops,
+            (SELECT COUNT(*) FROM licenses) as total_licenses,
+            (SELECT COUNT(*) FROM licenses WHERE status = 'active' AND expiry_date >= CURRENT_DATE) as active_licenses,
+            (SELECT COUNT(*) FROM licenses WHERE status = 'expired' OR expiry_date < CURRENT_DATE) as expired_licenses,
+            (SELECT COUNT(*) FROM licenses WHERE status = 'active' AND expiry_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days') as expiring_soon,
+            (SELECT COUNT(*) FROM users) as total_users
+    `;
 
-    // Total licenses
-    const licensesResult = await fetchOne('SELECT COUNT(*) as count FROM licenses');
-    const totalLicenses = parseInt(licensesResult?.count || 0);
-
-    // Active licenses
-    const activeResult = await fetchOne(
-        "SELECT COUNT(*) as count FROM licenses WHERE status = 'active' AND expiry_date >= CURRENT_DATE"
-    );
-    const activeLicenses = parseInt(activeResult?.count || 0);
-
-    // Expired licenses  
-    const expiredResult = await fetchOne(
-        "SELECT COUNT(*) as count FROM licenses WHERE status = 'expired' OR expiry_date < CURRENT_DATE"
-    );
-    const expiredLicenses = parseInt(expiredResult?.count || 0);
-
-    // Expiring soon (within 30 days)
-    const expiringSoonResult = await fetchOne(
-        "SELECT COUNT(*) as count FROM licenses WHERE status = 'active' AND expiry_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'"
-    );
-    const expiringSoon = parseInt(expiringSoonResult?.count || 0);
-
-    // Total users
-    const usersResult = await fetchOne('SELECT COUNT(*) as count FROM users');
-    const totalUsers = parseInt(usersResult?.count || 0);
+    const result = await fetchOne(query);
 
     return NextResponse.json({
         success: true,
         message: 'Success',
         stats: {
-            total_shops: totalShops,
-            total_licenses: totalLicenses,
-            active_licenses: activeLicenses,
-            expired_licenses: expiredLicenses,
-            expiring_soon: expiringSoon,
-            total_users: totalUsers,
+            total_shops: parseInt(result?.total_shops || 0),
+            total_licenses: parseInt(result?.total_licenses || 0),
+            active_licenses: parseInt(result?.active_licenses || 0),
+            expired_licenses: parseInt(result?.expired_licenses || 0),
+            expiring_soon: parseInt(result?.expiring_soon || 0),
+            total_users: parseInt(result?.total_users || 0),
             expiry_warning_days: 30
         },
         expiring: []
@@ -105,5 +90,15 @@ async function getLicenseBreakdown() {
         success: true,
         message: 'Success',
         breakdown
+    });
+}
+
+async function getExpiringCount() {
+    const result = await fetchOne(
+        "SELECT COUNT(*) as count FROM licenses WHERE status = 'active' AND expiry_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'"
+    );
+    return NextResponse.json({
+        success: true,
+        count: parseInt(result?.count || 0)
     });
 }
