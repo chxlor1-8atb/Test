@@ -141,6 +141,14 @@ export default function DashboardLayout({ children }) {
                             <span>ใบอนุญาตใกล้หมดอายุ</span>
                             {expiringCount > 0 && <span className="nav-badge" style={{ display: 'inline' }}>{expiringCount}</span>}
                         </Link>
+
+                        {/* Legacy Links (Restored) */}
+                        <Link href="/dashboard/shops" className={`nav-link ${isActive('/dashboard/shops') ? 'active' : ''}`}>
+                            <i className="fas fa-store"></i><span>ร้านค้า (เดิม)</span>
+                        </Link>
+                        <Link href="/dashboard/licenses" className={`nav-link ${isActive('/dashboard/licenses') ? 'active' : ''}`}>
+                            <i className="fas fa-file-alt"></i><span>ใบอนุญาต (เดิม)</span>
+                        </Link>
                         {/* Dynamic Entities Loop */}
                         {dynamicEntities.map(ent => (
                             <Link
