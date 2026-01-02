@@ -1,190 +1,150 @@
+
 import { cookies } from 'next/headers';
 import { getIronSession } from 'iron-session';
-import { fetchAll, fetchOne, insert, update, remove, query } from '@/lib/db';
+import { fetchAll, fetchOne, executeQuery } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-async function requireAuth() {
-    const cookieStore = await cookies();
-    const session = await getIronSession(cookieStore, sessionOptions);
-    if (!session.userId) return null;
-    return session;
-}
-
 export async function GET(request) {
     try {
-        const session = await requireAuth();
-        if (!session) {
-            return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
-        }
-
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
+        const search = searchParams.get('search') || '';
+        const license_type = searchParams.get('license_type') || '';
+        const status = searchParams.get('status') || '';
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 20;
+        const offset = (page - 1) * limit;
 
+        // Get Single License
         if (id) {
-            const license = await fetchOne(
-                `SELECT l.*, s.name as shop_name, lt.name as type_name,
-                        u.full_name as created_by_name
-                 FROM licenses l 
-                 JOIN shops s ON l.shop_id = s.id
-                 JOIN license_types lt ON l.license_type_id = lt.id
-                 LEFT JOIN users u ON l.created_by = u.id 
-                 WHERE l.id = $1`,
-                [id]
-            );
-            return NextResponse.json({ success: true, message: 'Success', license });
-        } else {
-            const search = searchParams.get('search') || '';
-            const status = searchParams.get('status') || '';
-            const licenseType = searchParams.get('license_type') || '';
-            const shopId = searchParams.get('shop_id') || '';
-            const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-            const limit = Math.min(100, Math.max(10, parseInt(searchParams.get('limit') || '20')));
-            const offset = (page - 1) * limit;
-
-            let conditions = [];
-            let params = [];
-            let paramIndex = 1;
-
-            if (search) {
-                conditions.push(`s.name ILIKE $${paramIndex++}`);
-                params.push(`%${search}%`);
-            }
-            if (status) {
-                conditions.push(`l.status = $${paramIndex++}`);
-                params.push(status);
-            }
-            if (licenseType) {
-                conditions.push(`l.license_type_id = $${paramIndex++}`);
-                params.push(licenseType);
-            }
-            if (shopId) {
-                conditions.push(`l.shop_id = $${paramIndex++}`);
-                params.push(shopId);
-            }
-
-            const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
-
-            const countResult = await fetchOne(
-                `SELECT COUNT(*) as total
-                 FROM licenses l 
-                 JOIN shops s ON l.shop_id = s.id
-                 JOIN license_types lt ON l.license_type_id = lt.id
-                 ${whereClause}`,
-                params
-            );
-            const total = parseInt(countResult?.total || 0);
-            const totalPages = Math.ceil(total / limit);
-
-            const licenses = await fetchAll(
-                `SELECT l.*, s.name as shop_name, lt.name as type_name,
-                        u.full_name as created_by_name,
-                        (l.expiry_date - CURRENT_DATE) as days_until_expiry
-                 FROM licenses l 
-                 JOIN shops s ON l.shop_id = s.id
-                 JOIN license_types lt ON l.license_type_id = lt.id
-                 LEFT JOIN users u ON l.created_by = u.id 
-                 ${whereClause}
-                 ORDER BY l.expiry_date ASC
-                 LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
-                [...params, limit, offset]
-            );
-
-            return NextResponse.json({
-                success: true,
-                message: 'Success',
-                licenses,
-                pagination: { page, limit, total, totalPages }
-            });
+            const license = await fetchOne('SELECT * FROM licenses WHERE id = $1', [id]);
+            return NextResponse.json({ success: true, license });
         }
+
+        // List Licenses
+        let whereClauses = [];
+        let params = [];
+        let paramIndex = 1;
+
+        if (search) {
+            whereClauses.push(`(s.shop_name ILIKE $${paramIndex} OR l.license_number ILIKE $${paramIndex})`);
+            params.push(`%${search}%`);
+            paramIndex++;
+        }
+
+        if (license_type) {
+            whereClauses.push(`l.license_type_id = $${paramIndex}`);
+            params.push(license_type);
+            paramIndex++;
+        }
+
+        if (status) {
+            whereClauses.push(`l.status = $${paramIndex}`);
+            params.push(status);
+            paramIndex++;
+        }
+
+        let whereSQL = whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : '';
+
+        const countQuery = `
+            SELECT COUNT(*) as total 
+            FROM licenses l
+            LEFT JOIN shops s ON l.shop_id = s.id
+            ${whereSQL}
+        `;
+        const countResult = await fetchOne(countQuery, params);
+        const total = parseInt(countResult.total);
+        const totalPages = Math.ceil(total / limit);
+
+        // We can't inject limit/offset as params easily if we built param array dynamically differently
+        // But let's just use string interpolation for limit/offset since they are safe ints
+        const query = `
+            SELECT l.*, s.shop_name, lt.name as type_name
+            FROM licenses l
+            LEFT JOIN shops s ON l.shop_id = s.id
+            LEFT JOIN license_types lt ON l.license_type_id = lt.id
+            ${whereSQL}
+            ORDER BY l.id DESC
+            LIMIT ${limit} OFFSET ${offset}
+        `;
+
+        const licenses = await fetchAll(query, params);
+
+        return NextResponse.json({
+            success: true,
+            licenses,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages
+            }
+        });
+
     } catch (err) {
-        console.error('Licenses GET error:', err);
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
     }
 }
 
 export async function POST(request) {
     try {
-        const session = await requireAuth();
-        if (!session) {
-            return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
+        const body = await request.json();
+        const { shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes } = body;
+
+        if (!shop_id || !license_type_id || !license_number) {
+            return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
         }
 
-        const data = await request.json();
+        await executeQuery(
+            `INSERT INTO licenses (shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [shop_id, license_type_id, license_number, issue_date, expiry_date, status || 'active', notes]
+        );
 
-        if (!data.shop_id || !data.license_type_id || !data.issue_date || !data.expiry_date) {
-            return NextResponse.json({ success: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
-        }
-
-        const id = await insert('licenses', {
-            shop_id: data.shop_id,
-            license_type_id: data.license_type_id,
-            license_number: data.license_number || null,
-            issue_date: data.issue_date,
-            expiry_date: data.expiry_date,
-            status: data.status || 'active',
-            notes: data.notes || null,
-            created_by: session.userId
-        });
-
-        return NextResponse.json({ success: true, message: 'เพิ่มใบอนุญาตสำเร็จ', id });
+        return NextResponse.json({ success: true, message: 'เพิ่มใบอนุญาตเรียบร้อยแล้ว' });
     } catch (err) {
-        console.error('Licenses POST error:', err);
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
     }
 }
 
 export async function PUT(request) {
     try {
-        const session = await requireAuth();
-        if (!session) {
-            return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
+        const body = await request.json();
+        const { id, shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes } = body;
+
+        if (!id || !shop_id || !license_type_id) {
+            return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
         }
 
-        const data = await request.json();
+        await executeQuery(
+            `UPDATE licenses 
+             SET shop_id = $1, license_type_id = $2, license_number = $3, issue_date = $4, expiry_date = $5, status = $6, notes = $7
+             WHERE id = $8`,
+            [shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes, id]
+        );
 
-        if (!data.id) {
-            return NextResponse.json({ success: false, message: 'Missing license ID' });
-        }
-
-        await update('licenses', {
-            shop_id: data.shop_id,
-            license_type_id: data.license_type_id,
-            license_number: data.license_number || null,
-            issue_date: data.issue_date,
-            expiry_date: data.expiry_date,
-            status: data.status,
-            notes: data.notes || null
-        }, 'id = ?', [data.id]);
-
-        return NextResponse.json({ success: true, message: 'แก้ไขข้อมูลใบอนุญาตสำเร็จ' });
+        return NextResponse.json({ success: true, message: 'บันทึกใบอนุญาตเรียบร้อยแล้ว' });
     } catch (err) {
-        console.error('Licenses PUT error:', err);
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
     }
 }
 
 export async function DELETE(request) {
     try {
-        const session = await requireAuth();
-        if (!session) {
-            return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
-        }
-
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 
         if (!id) {
-            return NextResponse.json({ success: false, message: 'Missing license ID' });
+            return NextResponse.json({ success: false, message: 'ID is required' }, { status: 400 });
         }
 
-        await remove('licenses', 'id = ?', [id]);
+        await executeQuery('DELETE FROM licenses WHERE id = $1', [id]);
 
-        return NextResponse.json({ success: true, message: 'ลบใบอนุญาตสำเร็จ' });
+        return NextResponse.json({ success: true, message: 'ลบใบอนุญาตเรียบร้อยแล้ว' });
     } catch (err) {
-        console.error('Licenses DELETE error:', err);
-        return NextResponse.json({ success: false, message: err.message }, { status: 500 });
+        return NextResponse.json({ success: false, message: 'ไม่สามารถลบได้' }, { status: 500 });
     }
 }

@@ -1,168 +1,133 @@
+
 import { cookies } from 'next/headers';
 import { getIronSession } from 'iron-session';
-import { fetchAll, fetchOne, insert, update, remove } from '@/lib/db';
+import { fetchAll, fetchOne, executeQuery } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-// Helper to check auth
-async function requireAuth() {
-    const cookieStore = await cookies();
-    const session = await getIronSession(cookieStore, sessionOptions);
-    if (!session.userId) {
-        return null;
-    }
-    return session;
-}
-
 export async function GET(request) {
     try {
-        const session = await requireAuth();
-        if (!session) {
-            return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
-        }
-
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
+        const search = searchParams.get('search') || '';
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limit = parseInt(searchParams.get('limit')) || 20;
+        const offset = (page - 1) * limit;
 
+        // Get Single Shop
         if (id) {
-            // Get single shop
-            const shop = await fetchOne(
-                `SELECT s.*, u.full_name as created_by_name 
-                 FROM shops s 
-                 LEFT JOIN users u ON s.created_by = u.id 
-                 WHERE s.id = $1`,
-                [id]
-            );
-            return NextResponse.json({ success: true, message: 'Success', shop });
-        } else {
-            // Get all shops with pagination
-            const search = searchParams.get('search') || '';
-            const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-            const limit = Math.min(100, Math.max(10, parseInt(searchParams.get('limit') || '20')));
-            const offset = (page - 1) * limit;
-
-            let whereClause = '';
-            let params = [];
-
-            if (search) {
-                whereClause = `WHERE s.name ILIKE $1 OR s.owner_name ILIKE $1`;
-                params = [`%${search}%`];
-            }
-
-            // Get total count
-            const countResult = await fetchOne(
-                `SELECT COUNT(*) as total FROM shops s ${whereClause}`,
-                params
-            );
-            const total = parseInt(countResult?.total || 0);
-            const totalPages = Math.ceil(total / limit);
-
-            // Get shops
-            const shops = await fetchAll(
-                `SELECT s.*, u.full_name as created_by_name,
-                        (SELECT COUNT(*) FROM licenses l WHERE l.shop_id = s.id) as license_count
-                 FROM shops s 
-                 LEFT JOIN users u ON s.created_by = u.id 
-                 ${whereClause}
-                 ORDER BY s.id DESC
-                 LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-                [...params, limit, offset]
-            );
-
-            return NextResponse.json({
-                success: true,
-                message: 'Success',
-                shops,
-                pagination: { page, limit, total, totalPages }
-            });
+            const shop = await fetchOne('SELECT * FROM shops WHERE id = $1', [id]);
+            return NextResponse.json({ success: true, shop });
         }
+
+        // List Shops
+        let whereClause = '';
+        let params = [];
+
+        if (search) {
+            whereClause = `WHERE shop_name ILIKE $1 OR owner_name ILIKE $1 OR phone ILIKE $1`;
+            params.push(`%${search}%`);
+        }
+
+        const countQuery = `SELECT COUNT(*) as total FROM shops ${whereClause}`;
+        const countResult = await fetchOne(countQuery, params);
+        const total = parseInt(countResult.total);
+        const totalPages = Math.ceil(total / limit);
+
+        const query = `
+            SELECT s.*, 
+            (SELECT COUNT(*) FROM licenses l WHERE l.shop_id = s.id AND l.status = 'active') as license_count
+            FROM shops s
+            ${whereClause}
+            ORDER BY s.id DESC
+            LIMIT ${limit} OFFSET ${offset}
+        `;
+
+        // Adjust params for the second query if search is present
+        // If search is present, params has 1 element.
+        // LIMIT and OFFSET should be injected directly or appended to params?
+        // fetchAll uses pg query, supports numbered params.
+        // If using variables for limit/offset, they need indices.
+        // Simpler to inject integers for limit/offset since they are parsed securely above.
+
+        const shops = await fetchAll(query, params);
+
+        return NextResponse.json({
+            success: true,
+            shops,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages
+            }
+        });
+
     } catch (err) {
-        console.error('Shops GET error:', err);
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
     }
 }
 
 export async function POST(request) {
     try {
-        const session = await requireAuth();
-        if (!session) {
-            return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
+        const body = await request.json();
+        const { shop_name, owner_name, address, phone, email, notes } = body;
+
+        if (!shop_name) {
+            return NextResponse.json({ success: false, message: 'Shop name is required' }, { status: 400 });
         }
 
-        const data = await request.json();
+        await executeQuery(
+            `INSERT INTO shops (shop_name, owner_name, address, phone, email, notes) 
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [shop_name, owner_name, address, phone, email, notes]
+        );
 
-        if (!data.name) {
-            return NextResponse.json({ success: false, message: 'กรุณากรอกชื่อร้านค้า' });
-        }
-
-        const id = await insert('shops', {
-            shop_code: data.shop_code || `SHOP-${Date.now()}`,
-            name: data.name,
-            owner_name: data.owner_name || null,
-            address: data.address || null,
-            phone: data.phone || null,
-            email: data.email || null,
-            notes: data.notes || null,
-            created_by: session.userId
-        });
-
-        return NextResponse.json({ success: true, message: 'เพิ่มร้านค้าสำเร็จ', id });
+        return NextResponse.json({ success: true, message: 'เพิ่มร้านค้าเรียบร้อยแล้ว' });
     } catch (err) {
-        console.error('Shops POST error:', err);
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
     }
 }
 
 export async function PUT(request) {
     try {
-        const session = await requireAuth();
-        if (!session) {
-            return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
+        const body = await request.json();
+        const { id, shop_name, owner_name, address, phone, email, notes } = body;
+
+        if (!id || !shop_name) {
+            return NextResponse.json({ success: false, message: 'ID and Shop name are required' }, { status: 400 });
         }
 
-        const data = await request.json();
+        await executeQuery(
+            `UPDATE shops 
+             SET shop_name = $1, owner_name = $2, address = $3, phone = $4, email = $5, notes = $6
+             WHERE id = $7`,
+            [shop_name, owner_name, address, phone, email, notes, id]
+        );
 
-        if (!data.id) {
-            return NextResponse.json({ success: false, message: 'Missing shop ID' });
-        }
-
-        await update('shops', {
-            name: data.name,
-            owner_name: data.owner_name || null,
-            address: data.address || null,
-            phone: data.phone || null,
-            email: data.email || null,
-            notes: data.notes || null
-        }, 'id = $1', [data.id]);
-
-        return NextResponse.json({ success: true, message: 'แก้ไขข้อมูลร้านค้าสำเร็จ' });
+        return NextResponse.json({ success: true, message: 'อัปเดตร้านค้าเรียบร้อยแล้ว' });
     } catch (err) {
-        console.error('Shops PUT error:', err);
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
     }
 }
 
 export async function DELETE(request) {
     try {
-        const session = await requireAuth();
-        if (!session) {
-            return NextResponse.json({ success: false, message: 'Not authenticated' }, { status: 401 });
-        }
-
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 
         if (!id) {
-            return NextResponse.json({ success: false, message: 'Missing shop ID' });
+            return NextResponse.json({ success: false, message: 'ID is required' }, { status: 400 });
         }
 
-        await remove('shops', 'id = ?', [id]);
+        // Check for licenses first? Usually constraints handle this, but let's just create generic logic.
+        // Assuming cascade or check logic. For now just delete.
+        await executeQuery('DELETE FROM shops WHERE id = $1', [id]);
 
-        return NextResponse.json({ success: true, message: 'ลบร้านค้าสำเร็จ' });
+        return NextResponse.json({ success: true, message: 'ลบร้านค้าเรียบร้อยแล้ว' });
     } catch (err) {
-        console.error('Shops DELETE error:', err);
-        return NextResponse.json({ success: false, message: err.message }, { status: 500 });
+        return NextResponse.json({ success: false, message: 'ไม่สามารถลบได้ (อาจมีใบอนุญาตผูกอยู่)' }, { status: 500 });
     }
 }

@@ -93,6 +93,7 @@ async function getLicenseBreakdown() {
             lt.name as type_name,
             COUNT(l.id) as total_count,
             SUM(CASE WHEN l.status = 'active' AND l.expiry_date >= CURRENT_DATE THEN 1 ELSE 0 END) as active_count,
+            SUM(CASE WHEN l.status = 'active' AND l.expiry_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days' THEN 1 ELSE 0 END) as expiring_count,
             SUM(CASE WHEN l.status = 'expired' OR l.expiry_date < CURRENT_DATE THEN 1 ELSE 0 END) as expired_count
          FROM license_types lt
          LEFT JOIN licenses l ON lt.id = l.license_type_id
