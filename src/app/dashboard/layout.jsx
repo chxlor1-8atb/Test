@@ -51,7 +51,13 @@ export default function DashboardLayout({ children }) {
 
     const checkAuth = async () => {
         try {
-            const res = await fetch('/api/auth?action=check');
+            const res = await fetch('/api/auth?action=check', {
+                cache: 'no-store',
+                headers: {
+                    'Pragma': 'no-cache',
+                    'Cache-Control': 'no-cache'
+                }
+            });
             const data = await res.json();
             if (!data.success) {
                 router.push('/login');

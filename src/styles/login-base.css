@@ -543,6 +543,8 @@ html {
     align-items: stretch;
     width: 100%;
     max-width: 1000px;
+    padding: 0;
+    gap: 0;
     /* Glassmorphism effect */
     background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(20px) saturate(180%);
