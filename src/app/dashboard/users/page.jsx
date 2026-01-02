@@ -160,7 +160,15 @@ export default function UsersPage() {
                             </thead>
                             <tbody>
                                 {loading ? (
-                                    <tr><td colSpan="5" className="text-center">กำลังโหลด...</td></tr>
+                                    [...Array(5)].map((_, i) => (
+                                        <tr key={`skeleton-${i}`}>
+                                            <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '70%' }}></div></td>
+                                            <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '80%' }}></div></td>
+                                            <td><div className="skeleton-cell skeleton-animate" style={{ height: '1.5rem', width: '3rem', borderRadius: '9999px' }}></div></td>
+                                            <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '60%' }}></div></td>
+                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '2rem', width: '4rem', margin: '0 auto', borderRadius: '0.5rem' }}></div></td>
+                                        </tr>
+                                    ))
                                 ) : users.length === 0 ? (
                                     <tr><td colSpan="5" className="text-center">ไม่พบข้อมูล</td></tr>
                                 ) : (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Loading from '@/components/Loading';
+import DatePicker from '@/components/ui/DatePicker';
 
 export default function LicensesPage() {
     const [licenses, setLicenses] = useState([]);
@@ -251,7 +252,16 @@ export default function LicensesPage() {
                             </thead>
                             <tbody>
                                 {loading ? (
-                                    <tr><td colSpan="6" className="text-center">กำลังโหลด...</td></tr>
+                                    [...Array(5)].map((_, i) => (
+                                        <tr key={`skeleton-${i}`}>
+                                            <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '80%' }}></div></td>
+                                            <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '70%' }}></div></td>
+                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '60%', margin: '0 auto' }}></div></td>
+                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '60%', margin: '0 auto' }}></div></td>
+                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '1.5rem', width: '4rem', margin: '0 auto', borderRadius: '9999px' }}></div></td>
+                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '2rem', width: '4rem', margin: '0 auto', borderRadius: '0.5rem' }}></div></td>
+                                        </tr>
+                                    ))
                                 ) : licenses.length === 0 ? (
                                     <tr><td colSpan="6" className="text-center">ไม่พบข้อมูล</td></tr>
                                 ) : (
@@ -328,6 +338,8 @@ export default function LicensesPage() {
                                             ...shopsList.map(s => ({ value: s.id, label: s.shop_name }))
                                         ]}
                                         placeholder="เลือกร้านค้า"
+                                        searchable={true}
+                                        searchPlaceholder="ค้นหาร้านค้า..."
                                     />
                                 </div>
                                 <div className="form-group">
@@ -341,6 +353,8 @@ export default function LicensesPage() {
                                             ...typesList.map(t => ({ value: t.id, label: t.name }))
                                         ]}
                                         placeholder="เลือกประเภท"
+                                        searchable={true}
+                                        searchPlaceholder="ค้นหาประเภท..."
                                     />
                                 </div>
                                 <div className="form-group">
@@ -349,11 +363,21 @@ export default function LicensesPage() {
                                 </div>
                                 <div className="form-group">
                                     <label>วันที่ออก *</label>
-                                    <input type="date" name="issue_date" value={formData.issue_date} onChange={handleChange} required />
+                                    <DatePicker
+                                        name="issue_date"
+                                        value={formData.issue_date}
+                                        onChange={handleChange}
+                                        placeholder="เลือกวันที่ออก"
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <label>วันหมดอายุ *</label>
-                                    <input type="date" name="expiry_date" value={formData.expiry_date} onChange={handleChange} required />
+                                    <DatePicker
+                                        name="expiry_date"
+                                        value={formData.expiry_date}
+                                        onChange={handleChange}
+                                        placeholder="เลือกวันหมดอายุ"
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <label>สถานะ</label>
