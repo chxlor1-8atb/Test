@@ -55,7 +55,7 @@ export async function POST(request) {
         }
 
         const id = await insert('license_types', {
-            type_name: data.name,
+            name: data.name,
             description: data.description || null,
             validity_period: data.validity_days || 365
         });
@@ -81,7 +81,7 @@ export async function PUT(request) {
         }
 
         await update('license_types', {
-            type_name: data.name,
+            name: data.name,
             description: data.description || null,
             validity_period: data.validity_days || 365
         }, 'id = $1', [data.id]);

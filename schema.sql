@@ -22,7 +22,7 @@ CREATE TABLE users (
 CREATE TABLE shops (
     id SERIAL PRIMARY KEY,
     shop_code VARCHAR(50) UNIQUE,
-    shop_name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     owner_name VARCHAR(255),
     address TEXT,
     phone VARCHAR(50),
@@ -35,7 +35,7 @@ CREATE TABLE shops (
 -- License Types Table
 CREATE TABLE license_types (
     id SERIAL PRIMARY KEY,
-    type_name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     description TEXT,
     validity_period INT NOT NULL DEFAULT 365,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -80,7 +80,11 @@ CREATE TABLE notification_logs (
 INSERT INTO users (full_name, username, password, role) 
 VALUES ('Admin User', 'admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin');
 
--- Sample License Types (Optional but helpful for "best fit")
-INSERT INTO license_types (type_name, validity_period) VALUES 
+-- Default License Types
+INSERT INTO license_types (name, validity_period) VALUES 
 ('รายปี (Yearly)', 365),
 ('รายเดือน (Monthly)', 30);
+
+-- Initialize notification settings
+INSERT INTO notification_settings (id, days_before_expiry, is_active) 
+VALUES (1, 30, false);

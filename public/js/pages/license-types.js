@@ -31,7 +31,7 @@ async function loadTypes() {
     licenseTypesData = data.types || [];
 
     document.getElementById('typesTable').innerHTML = licenseTypesData.map(t => `<tr>
-        <td><strong>${t.type_name}</strong></td><td>${t.description || '-'}</td>
+        <td><strong>${t.name}</strong></td><td>${t.description || '-'}</td>
         <td>${t.validity_days} วัน</td>
         <td><span class="badge badge-active">${t.license_count}</span></td>
         <td class="text-center">
@@ -56,7 +56,7 @@ window.showTypeModal = async function (id = null) {
         isEdit ? 'แก้ไขประเภท' : 'เพิ่มประเภทใหม่',
         `<form id="typeForm">
             <input type="hidden" name="id" value="${type.id || ''}">
-            <div class="form-group"><label>ชื่อประเภท *</label><input type="text" name="type_name" value="${type.type_name || ''}" required></div>
+            <div class="form-group"><label>ชื่อประเภท *</label><input type="text" name="name" value="${type.name || ''}" required></div>
             <div class="form-group"><label>คำอธิบาย</label><textarea name="description" rows="2">${type.description || ''}</textarea></div>
             <div class="form-group"><label>อายุใบอนุญาต (วัน)</label><input type="number" name="validity_days" value="${type.validity_days || 365}" min="1" required></div>
         </form>`,

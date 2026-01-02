@@ -24,7 +24,7 @@ async function renderLicenses() {
             <div class="card-body">
                 <div class="filter-row" style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center">
                     <input type="text" id="licenseSearch" placeholder="ค้นหา...">
-                    <select id="filterType"><option value="">ทุกประเภท</option>${licensesTypesList.map(t => `<option value="${t.id}">${t.type_name}</option>`).join('')}</select>
+                    <select id="filterType"><option value="">ทุกประเภท</option>${licensesTypesList.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}</select>
                     <select id="filterStatus"><option value="">ทุกสถานะ</option><option value="active">ปกติ</option><option value="pending">กำลังดำเนินการ</option><option value="expired">หมดอายุ</option><option value="suspended">ถูกพักใช้</option><option value="revoked">ถูกเพิกถอน</option></select>
                 </div>
                 <div class="table-container"><table class="data-table"><thead><tr><th>ร้านค้า</th><th>ประเภท</th><th class="text-center">วันออก</th><th class="text-center">หมดอายุ</th><th class="text-center">สถานะ</th><th class="text-center" style="width: 150px;">จัดการ</th></tr></thead>
@@ -126,11 +126,11 @@ window.showLicenseModal = async function (id = null) {
             <input type="hidden" name="id" value="${license.id || ''}">
             <div class="form-group"><label>ร้านค้า *</label><select name="shop_id" required>
                 <option value="">-- เลือกร้านค้า --</option>
-                ${licensesShopsList.map(s => `<option value="${s.id}" ${license.shop_id == s.id ? 'selected' : ''}>${s.shop_code} - ${s.shop_name}</option>`).join('')}
+                ${licensesShopsList.map(s => `<option value="${s.id}" ${license.shop_id == s.id ? 'selected' : ''}>${s.shop_code} - ${s.name}</option>`).join('')}
             </select></div>
             <div class="form-group"><label>ประเภทใบอนุญาต *</label><select name="license_type_id" required>
                 <option value="">-- เลือกประเภท --</option>
-                ${licensesTypesList.map(t => `<option value="${t.id}" ${license.license_type_id == t.id ? 'selected' : ''}>${t.type_name}</option>`).join('')}
+                ${licensesTypesList.map(t => `<option value="${t.id}" ${license.license_type_id == t.id ? 'selected' : ''}>${t.name}</option>`).join('')}
             </select></div>
             <div class="form-group"><label>เลขที่ใบอนุญาต *</label><input type="text" name="license_number" value="${license.license_number || ''}" required></div>
             <div class="form-group"><label>วันที่ออก *</label><input type="date" name="issue_date" value="${license.issue_date || ''}" required></div>

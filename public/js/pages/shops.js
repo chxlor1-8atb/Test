@@ -46,7 +46,7 @@ async function loadShops(search = '') {
     }
 
     document.getElementById('shopsTable').innerHTML = shops.length ? shops.map(s => `<tr>
-        <td>${s.shop_name}</td><td>${s.owner_name || '-'}</td><td>${s.phone || '-'}</td>
+        <td>${s.name}</td><td>${s.owner_name || '-'}</td><td>${s.phone || '-'}</td>
         <td class="text-center"><span class="badge badge-active">${s.license_count}</span></td>
         <td class="text-center">
             <div class="action-buttons">
@@ -86,7 +86,7 @@ window.showShopModal = async function (id = null) {
         isEdit ? 'แก้ไขร้านค้า' : 'เพิ่มร้านค้าใหม่',
         `<form id="shopForm">
             <input type="hidden" name="id" value="${shop.id || ''}">
-            <div class="form-group"><label>ชื่อร้านค้า *</label><input type="text" name="shop_name" value="${shop.shop_name || ''}" required></div>
+            <div class="form-group"><label>ชื่อร้านค้า *</label><input type="text" name="name" value="${shop.name || ''}" required></div>
             <div class="form-group"><label>ชื่อเจ้าของ</label><input type="text" name="owner_name" value="${shop.owner_name || ''}"></div>
             <div class="form-group"><label>ที่อยู่</label><textarea name="address" rows="2">${shop.address || ''}</textarea></div>
             <div class="form-group"><label>โทรศัพท์</label><input type="text" name="phone" value="${shop.phone || ''}"></div>

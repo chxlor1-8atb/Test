@@ -47,7 +47,7 @@ export async function GET(request) {
             let params = [];
 
             if (search) {
-                whereClause = `WHERE s.shop_name ILIKE $1 OR s.owner_name ILIKE $1`;
+                whereClause = `WHERE s.name ILIKE $1 OR s.owner_name ILIKE $1`;
                 params = [`%${search}%`];
             }
 
@@ -93,13 +93,13 @@ export async function POST(request) {
 
         const data = await request.json();
 
-        if (!data.shop_name) {
+        if (!data.name) {
             return NextResponse.json({ success: false, message: 'กรุณากรอกชื่อร้านค้า' });
         }
 
         const id = await insert('shops', {
             shop_code: data.shop_code || `SHOP-${Date.now()}`,
-            shop_name: data.shop_name,
+            name: data.name,
             owner_name: data.owner_name || null,
             address: data.address || null,
             phone: data.phone || null,
@@ -129,7 +129,7 @@ export async function PUT(request) {
         }
 
         await update('shops', {
-            shop_name: data.shop_name,
+            name: data.name,
             owner_name: data.owner_name || null,
             address: data.address || null,
             phone: data.phone || null,
