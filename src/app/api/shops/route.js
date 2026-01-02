@@ -12,8 +12,8 @@ export async function GET(request) {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
         const search = searchParams.get('search') || '';
-        const page = parseInt(searchParams.get('page')) || 1;
-        const limit = parseInt(searchParams.get('limit')) || 20;
+        const page = parseInt(searchParams.get('page'), 10) || 1;
+        const limit = parseInt(searchParams.get('limit'), 10) || 20;
         const offset = (page - 1) * limit;
 
         // Get Single Shop
@@ -33,7 +33,7 @@ export async function GET(request) {
 
         const countQuery = `SELECT COUNT(*) as total FROM shops ${whereClause}`;
         const countResult = await fetchOne(countQuery, params);
-        const total = parseInt(countResult.total);
+        const total = parseInt(countResult?.total || 0, 10);
         const totalPages = Math.ceil(total / limit);
 
         const query = `

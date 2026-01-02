@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 export default function ExpiringPage() {
     const [allLicenses, setAllLicenses] = useState([]);
@@ -141,13 +142,16 @@ export default function ExpiringPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
-                    <select
+                    <CustomSelect
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                    >
-                        <option value="">ทุกประเภท</option>
-                        {typesList.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
+                        options={[
+                            { value: '', label: 'ทุกประเภท' },
+                            ...typesList.map(t => ({ value: t, label: t }))
+                        ]}
+                        placeholder="ทุกประเภท"
+                        style={{ minWidth: '200px', width: 'auto' }}
+                    />
                 </div>
 
                 <div className="table-container">

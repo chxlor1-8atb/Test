@@ -14,8 +14,8 @@ export async function GET(request) {
         const search = searchParams.get('search') || '';
         const license_type = searchParams.get('license_type') || '';
         const status = searchParams.get('status') || '';
-        const page = parseInt(searchParams.get('page')) || 1;
-        const limit = parseInt(searchParams.get('limit')) || 20;
+        const page = parseInt(searchParams.get('page'), 10) || 1;
+        const limit = parseInt(searchParams.get('limit'), 10) || 20;
         const offset = (page - 1) * limit;
 
         // Get Single License
@@ -56,7 +56,7 @@ export async function GET(request) {
             ${whereSQL}
         `;
         const countResult = await fetchOne(countQuery, params);
-        const total = parseInt(countResult.total);
+        const total = parseInt(countResult?.total || 0, 10);
         const totalPages = Math.ceil(total / limit);
 
         // We can't inject limit/offset as params easily if we built param array dynamically differently

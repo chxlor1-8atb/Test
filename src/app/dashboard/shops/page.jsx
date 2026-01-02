@@ -40,6 +40,11 @@ export default function ShopsPage() {
             if (data.success) {
                 setShops(data.shops);
                 setPagination(prev => ({ ...prev, ...data.pagination }));
+
+                // Auto-correct page if out of bounds (e.g. after deleting items)
+                if (data.pagination.page > data.pagination.totalPages && data.pagination.totalPages > 0) {
+                    setPagination(prev => ({ ...prev, page: data.pagination.totalPages }));
+                }
             }
         } catch (error) {
             console.error(error);
@@ -215,7 +220,7 @@ export default function ShopsPage() {
                     </div>
 
                     {/* Simple Pagination */}
-                    {pagination.totalPages > 1 && (
+                    {(pagination.totalPages > 1 || pagination.page > 1) && (
                         <div className="pagination" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'end', gap: '0.5rem' }}>
                             <button
                                 className="btn btn-secondary btn-sm"
@@ -225,11 +230,11 @@ export default function ShopsPage() {
                                 ก่อนหน้า
                             </button>
                             <span style={{ display: 'flex', alignItems: 'center' }}>
-                                หน้า {pagination.page} / {pagination.totalPages}
+                                หน้า {pagination.page} / {pagination.totalPages || 1}
                             </span>
                             <button
                                 className="btn btn-secondary btn-sm"
-                                disabled={pagination.page === pagination.totalPages}
+                                disabled={pagination.page >= pagination.totalPages}
                                 onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                             >
                                 ถัดไป

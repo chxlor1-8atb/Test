@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 export default function LicensesPage() {
     const [licenses, setLicenses] = useState([]);
@@ -70,6 +71,11 @@ export default function LicensesPage() {
             if (data.success) {
                 setLicenses(data.licenses);
                 setPagination(prev => ({ ...prev, ...data.pagination }));
+
+                // Auto-correct page if out of bounds (e.g. after deleting items)
+                if (data.pagination.page > data.pagination.totalPages && data.pagination.totalPages > 0) {
+                    setPagination(prev => ({ ...prev, page: data.pagination.totalPages }));
+                }
             }
         } catch (error) {
             console.error(error);
@@ -204,26 +210,30 @@ export default function LicensesPage() {
                             value={search}
                             onChange={(e) => { setSearch(e.target.value); setPagination(prev => ({ ...prev, page: 1 })); }}
                         />
-                        <select
+                        <CustomSelect
                             value={filterType}
                             onChange={(e) => { setFilterType(e.target.value); setPagination(prev => ({ ...prev, page: 1 })); }}
-                            style={{ minWidth: '150px' }}
-                        >
-                            <option value="">ทุกประเภท</option>
-                            {typesList.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                        </select>
-                        <select
+                            options={[
+                                { value: '', label: 'ทุกประเภท' },
+                                ...typesList.map(t => ({ value: t.id, label: t.name }))
+                            ]}
+                            placeholder="ประเภทใบอนุญาต"
+                            style={{ minWidth: '200px', width: 'auto' }}
+                        />
+                        <CustomSelect
                             value={filterStatus}
                             onChange={(e) => { setFilterStatus(e.target.value); setPagination(prev => ({ ...prev, page: 1 })); }}
-                            style={{ minWidth: '150px' }}
-                        >
-                            <option value="">ทุกสถานะ</option>
-                            <option value="active">ปกติ</option>
-                            <option value="pending">กำลังดำเนินการ</option>
-                            <option value="expired">หมดอายุ</option>
-                            <option value="suspended">ถูกพักใช้</option>
-                            <option value="revoked">ถูกเพิกถอน</option>
-                        </select>
+                            options={[
+                                { value: '', label: 'ทุกสถานะ' },
+                                { value: 'active', label: 'ปกติ' },
+                                { value: 'pending', label: 'กำลังดำเนินการ' },
+                                { value: 'expired', label: 'หมดอายุ' },
+                                { value: 'suspended', label: 'ถูกพักใช้' },
+                                { value: 'revoked', label: 'ถูกเพิกถอน' }
+                            ]}
+                            placeholder="สถานะ"
+                            style={{ minWidth: '180px', width: 'auto' }}
+                        />
                     </div>
 
                     <div className="table-container">
@@ -268,7 +278,7 @@ export default function LicensesPage() {
                         </table>
                     </div>
                     {/* Simple Pagination */}
-                    {pagination.totalPages > 1 && (
+                    {(pagination.totalPages > 1 || pagination.page > 1) && (
                         <div className="pagination" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'end', gap: '0.5rem' }}>
                             <button
                                 className="btn btn-secondary btn-sm"
@@ -278,11 +288,11 @@ export default function LicensesPage() {
                                 ก่อนหน้า
                             </button>
                             <span style={{ display: 'flex', alignItems: 'center' }}>
-                                หน้า {pagination.page} / {pagination.totalPages}
+                                หน้า {pagination.page} / {pagination.totalPages || 1}
                             </span>
                             <button
                                 className="btn btn-secondary btn-sm"
-                                disabled={pagination.page === pagination.totalPages}
+                                disabled={pagination.page >= pagination.totalPages}
                                 onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                             >
                                 ถัดไป
@@ -308,21 +318,29 @@ export default function LicensesPage() {
                             <form id="licenseForm" onSubmit={handleSubmit}>
                                 <div className="form-group">
                                     <label>ร้านค้า *</label>
-                                    <select name="shop_id" value={formData.shop_id} onChange={handleChange} required>
-                                        <option value="">-- เลือกร้านค้า --</option>
-                                        {shopsList.map(s => (
-                                            <option key={s.id} value={s.id}>{s.shop_name}</option>
-                                        ))}
-                                    </select>
+                                    <CustomSelect
+                                        name="shop_id"
+                                        value={formData.shop_id}
+                                        onChange={handleChange}
+                                        options={[
+                                            { value: '', label: '-- เลือกร้านค้า --' },
+                                            ...shopsList.map(s => ({ value: s.id, label: s.shop_name }))
+                                        ]}
+                                        placeholder="เลือกร้านค้า"
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <label>ประเภทใบอนุญาต *</label>
-                                    <select name="license_type_id" value={formData.license_type_id} onChange={handleChange} required>
-                                        <option value="">-- เลือกประเภท --</option>
-                                        {typesList.map(t => (
-                                            <option key={t.id} value={t.id}>{t.name}</option>
-                                        ))}
-                                    </select>
+                                    <CustomSelect
+                                        name="license_type_id"
+                                        value={formData.license_type_id}
+                                        onChange={handleChange}
+                                        options={[
+                                            { value: '', label: '-- เลือกประเภท --' },
+                                            ...typesList.map(t => ({ value: t.id, label: t.name }))
+                                        ]}
+                                        placeholder="เลือกประเภท"
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <label>เลขที่ใบอนุญาต *</label>
@@ -338,13 +356,19 @@ export default function LicensesPage() {
                                 </div>
                                 <div className="form-group">
                                     <label>สถานะ</label>
-                                    <select name="status" value={formData.status} onChange={handleChange}>
-                                        <option value="active">ปกติ</option>
-                                        <option value="pending">กำลังดำเนินการ</option>
-                                        <option value="expired">หมดอายุ</option>
-                                        <option value="suspended">ถูกพักใช้</option>
-                                        <option value="revoked">ถูกเพิกถอน</option>
-                                    </select>
+                                    <CustomSelect
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleChange}
+                                        options={[
+                                            { value: 'active', label: 'ปกติ' },
+                                            { value: 'pending', label: 'กำลังดำเนินการ' },
+                                            { value: 'expired', label: 'หมดอายุ' },
+                                            { value: 'suspended', label: 'ถูกพักใช้' },
+                                            { value: 'revoked', label: 'ถูกเพิกถอน' }
+                                        ]}
+                                        placeholder="เลือกสถานะ"
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <label>หมายเหตุ</label>

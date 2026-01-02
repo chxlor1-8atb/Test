@@ -17,8 +17,31 @@ export async function GET(request) {
             return NextResponse.json({ success: true, user });
         }
 
-        const users = await fetchAll('SELECT id, username, full_name, role, created_at FROM users ORDER BY id ASC');
-        return NextResponse.json({ success: true, users });
+        const page = parseInt(searchParams.get('page'), 10) || 1;
+        const limit = parseInt(searchParams.get('limit'), 10) || 20;
+        const offset = (page - 1) * limit;
+
+        const countResult = await fetchOne('SELECT COUNT(*) as total FROM users');
+        const total = parseInt(countResult?.total || 0, 10);
+        const totalPages = Math.ceil(total / limit);
+
+        const users = await fetchAll(`
+            SELECT id, username, full_name, role, created_at 
+            FROM users 
+            ORDER BY id ASC
+            LIMIT ${limit} OFFSET ${offset}
+        `);
+
+        return NextResponse.json({
+            success: true,
+            users,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages
+            }
+        });
     } catch (err) {
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
     }

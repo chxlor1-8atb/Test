@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 export default function UsersPage() {
     const [users, setUsers] = useState([]);
+    const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState(null); // In real app, get from context/session
 
@@ -23,14 +25,24 @@ export default function UsersPage() {
         // Fetch current user info for checking self-deletion prevention (optional but good UI)
         // For now, assume admin access verified by layout or middleware
         loadUsers();
-    }, []);
+    }, [pagination.page]);
 
     const loadUsers = async () => {
         try {
-            const res = await fetch('/api/users');
+            const params = new URLSearchParams({
+                page: pagination.page,
+                limit: pagination.limit
+            });
+            const res = await fetch(`/api/users?${params}`);
             const data = await res.json();
             if (data.success) {
                 setUsers(data.users || []);
+                setPagination(prev => ({ ...prev, ...data.pagination }));
+
+                // Auto-correct page if out of bounds
+                if (data.pagination.page > data.pagination.totalPages && data.pagination.totalPages > 0) {
+                    setPagination(prev => ({ ...prev, page: data.pagination.totalPages }));
+                }
             }
         } catch (error) {
             console.error(error);
@@ -186,6 +198,28 @@ export default function UsersPage() {
                             </tbody>
                         </table>
                     </div>
+                    {/* Simple Pagination */}
+                    {(pagination.totalPages > 1 || pagination.page > 1) && (
+                        <div className="pagination" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'end', gap: '0.5rem' }}>
+                            <button
+                                className="btn btn-secondary btn-sm"
+                                disabled={pagination.page === 1}
+                                onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                            >
+                                ก่อนหน้า
+                            </button>
+                            <span style={{ display: 'flex', alignItems: 'center' }}>
+                                หน้า {pagination.page} / {pagination.totalPages || 1}
+                            </span>
+                            <button
+                                className="btn btn-secondary btn-sm"
+                                disabled={pagination.page >= pagination.totalPages}
+                                onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                            >
+                                ถัดไป
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -237,10 +271,16 @@ export default function UsersPage() {
                                 </div>
                                 <div className="form-group">
                                     <label>บทบาท *</label>
-                                    <select name="role" value={formData.role} onChange={handleChange} required>
-                                        <option value="staff">เจ้าหน้าที่</option>
-                                        <option value="admin">ผู้ดูแลระบบ</option>
-                                    </select>
+                                    <CustomSelect
+                                        name="role"
+                                        value={formData.role}
+                                        onChange={handleChange}
+                                        options={[
+                                            { value: 'staff', label: 'เจ้าหน้าที่' },
+                                            { value: 'admin', label: 'ผู้ดูแลระบบ' }
+                                        ]}
+                                        placeholder="เลือกบทบาท"
+                                    />
                                 </div>
                                 <div className="modal-footer" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                                     <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>ยกเลิก</button>
