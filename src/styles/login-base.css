@@ -136,17 +136,17 @@ html {
    3. BACKGROUND - Animated Flowing Lights
    ==================================== */
 
-/* Clean dark gradient background */
+/* Clean light gradient background */
 .login-body::before {
     content: '';
     position: fixed;
     inset: 0;
     background: linear-gradient(135deg,
-            #0a0a12 0%,
-            #12121f 25%,
-            #1a1a2e 50%,
-            #12121f 75%,
-            #0a0a12 100%);
+            #F8F6F2 0%,
+            #FAF9F7 25%,
+            #F9F8F6 50%,
+            #FAF9F7 75%,
+            #F8F6F2 100%);
     pointer-events: none;
     z-index: 0;
 }
@@ -160,15 +160,15 @@ html {
     width: 600px;
     height: 600px;
     background: radial-gradient(circle,
-            rgba(251, 191, 36, 0.5) 0%,
-            rgba(245, 158, 11, 0.35) 15%,
-            rgba(217, 119, 6, 0.2) 35%,
-            rgba(180, 83, 9, 0.08) 55%,
+            rgba(217, 119, 87, 0.15) 0%,
+            rgba(245, 158, 11, 0.1) 15%,
+            rgba(255, 255, 255, 0.5) 35%,
+            rgba(255, 255, 255, 0.2) 55%,
             transparent 70%);
     pointer-events: none;
     z-index: 0;
     animation: bounceOrb1 20s ease-in-out infinite;
-    filter: blur(30px);
+    filter: blur(40px);
 }
 
 @keyframes bounceOrb1 {
@@ -181,25 +181,25 @@ html {
     20% {
         top: 60%;
         right: 70%;
-        transform: scale(1.2);
+        transform: scale(1.1);
     }
 
     40% {
         top: 20%;
         right: 30%;
-        transform: scale(0.8);
+        transform: scale(0.9);
     }
 
     60% {
         top: 70%;
         right: 10%;
-        transform: scale(1.1);
+        transform: scale(1.05);
     }
 
     80% {
         top: 10%;
         right: 50%;
-        transform: scale(0.9);
+        transform: scale(0.95);
     }
 
     100% {
@@ -226,14 +226,13 @@ html {
     width: 550px;
     height: 550px;
     background: radial-gradient(circle,
-            rgba(167, 139, 250, 0.45) 0%,
-            rgba(139, 92, 246, 0.3) 15%,
-            rgba(99, 102, 241, 0.18) 35%,
-            rgba(79, 70, 229, 0.06) 55%,
+            rgba(139, 92, 246, 0.1) 0%,
+            rgba(167, 139, 250, 0.08) 15%,
+            rgba(255, 255, 255, 0.4) 35%,
             transparent 70%);
     pointer-events: none;
     animation: bounceOrb2 25s ease-in-out infinite;
-    filter: blur(25px);
+    filter: blur(35px);
 }
 
 @keyframes bounceOrb2 {
@@ -246,19 +245,19 @@ html {
     25% {
         bottom: 50%;
         left: 60%;
-        transform: scale(1.15);
+        transform: scale(1.1);
     }
 
     50% {
         bottom: 10%;
         left: 40%;
-        transform: scale(0.85);
+        transform: scale(0.9);
     }
 
     75% {
         bottom: 60%;
         left: 10%;
-        transform: scale(1.1);
+        transform: scale(1.05);
     }
 
     100% {
@@ -277,14 +276,13 @@ html {
     width: 500px;
     height: 500px;
     background: radial-gradient(circle,
-            rgba(45, 212, 191, 0.4) 0%,
-            rgba(20, 184, 166, 0.28) 15%,
-            rgba(13, 148, 136, 0.15) 35%,
-            rgba(6, 95, 70, 0.05) 55%,
+            rgba(14, 165, 233, 0.08) 0%,
+            rgba(45, 212, 191, 0.05) 15%,
+            rgba(255, 255, 255, 0.3) 35%,
             transparent 70%);
     pointer-events: none;
     animation: bounceOrb3 18s ease-in-out infinite;
-    filter: blur(35px);
+    filter: blur(40px);
 }
 
 @keyframes bounceOrb3 {
@@ -677,9 +675,11 @@ html {
     /* RWD: Fluid typography using clamp() */
     font-weight: 800;
     color: var(--text-primary);
-    line-height: 1.15;
+    line-height: 1.2;
     margin-bottom: var(--space-section);
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .hero__title--highlight {
