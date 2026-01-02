@@ -548,13 +548,14 @@ html {
     background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: none;
+    /* Removed border that was causing gray outline */
     border-radius: var(--radius-card);
     /* RWD: Using fluid border radius */
     overflow: hidden;
     box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.08),
-        0 0 0 1px rgba(255, 255, 255, 0.4) inset,
+        0 8px 32px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset,
         0 20px 60px -10px rgba(217, 119, 6, 0.12);
     animation: cardFadeIn 0.5s ease-out;
 }
@@ -613,6 +614,34 @@ html {
 .card-left__content {
     position: relative;
     z-index: 1;
+}
+
+/* ====================================
+   5.5. RIGHT SIDE - FORM
+   ==================================== */
+
+.card-right {
+    flex: 0 0 420px;
+    padding: var(--space-card);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Mobile Stacked Layout - Remove gap between sections */
+@media (max-width: 899px) {
+    .card-left {
+        border-radius: 0;
+    }
+
+    .card-right {
+        border-radius: 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
 }
 
 /* ====================================
