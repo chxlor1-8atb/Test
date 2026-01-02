@@ -4,6 +4,8 @@ import { fetchAll, fetchOne, insert, update, remove, query } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 async function requireAuth() {
     const cookieStore = await cookies();
     const session = await getIronSession(cookieStore, sessionOptions);

@@ -5,6 +5,8 @@ import { fetchOne } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request) {
     try {
         const { searchParams } = new URL(request.url);

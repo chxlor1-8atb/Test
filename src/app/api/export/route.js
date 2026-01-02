@@ -4,6 +4,8 @@ import { getIronSession } from 'iron-session';
 import { sessionOptions } from '@/lib/session';
 import { fetchAll } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
     const session = await getSession();
     if (!session.userId) {

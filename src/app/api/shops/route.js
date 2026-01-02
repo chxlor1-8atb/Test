@@ -4,6 +4,8 @@ import { fetchAll, fetchOne, insert, update, remove } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 // Helper to check auth
 async function requireAuth() {
     const cookieStore = await cookies();

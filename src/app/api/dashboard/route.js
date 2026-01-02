@@ -4,6 +4,8 @@ import { fetchAll, fetchOne } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
     try {
         // Check authentication

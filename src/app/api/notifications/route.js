@@ -6,22 +6,29 @@ import { fetchOne, fetchAll, update, insert } from '@/lib/db';
 import { TelegramService } from '@/lib/telegram';
 import { NotificationService } from '@/lib/notification-service';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
-    const session = await getSession();
-    if (!session.userId) {
-        return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    try {
+        const session = await getSession();
+        if (!session.userId) {
+            return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const action = searchParams.get('action') || 'settings';
+
+        if (action === 'settings') {
+            return await handleGetSettings();
+        } else if (action === 'logs') {
+            return await handleGetLogs();
+        }
+
+        return NextResponse.json({ success: false, message: 'Invalid action' });
+    } catch (error) {
+        console.error('Notification API GET Error:', error);
+        return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     }
-
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action') || 'settings';
-
-    if (action === 'settings') {
-        return await handleGetSettings();
-    } else if (action === 'logs') {
-        return await handleGetLogs();
-    }
-
-    return NextResponse.json({ success: false, message: 'Invalid action' });
 }
 
 export async function POST(request) {
@@ -47,7 +54,7 @@ export async function POST(request) {
 
         return NextResponse.json({ success: false, message: 'Invalid action' });
     } catch (error) {
-        console.error('Notification API Error:', error);
+        console.error('Notification API POST Error:', error);
         return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     }
 }
@@ -64,7 +71,7 @@ async function handleGetSettings() {
 
     if (!settings) {
         // Create default if not exists
-        await insert('notification_settings', { id: 1, days_before_expiry: 30, is_active: 0 });
+        await insert('notification_settings', { id: 1, days_before_expiry: 30, is_active: false });
         settings = await fetchOne("SELECT * FROM notification_settings WHERE id = 1");
     }
 
@@ -80,6 +87,7 @@ async function handleGetSettings() {
 }
 
 async function handleGetLogs() {
+    // Check if table exists (optional, but handled by try/catch now)
     const logs = await fetchAll(`
         SELECT nl.*, l.license_number, s.shop_name
         FROM notification_logs nl
@@ -88,7 +96,6 @@ async function handleGetLogs() {
         ORDER BY nl.sent_at DESC
         LIMIT 50
     `);
-    // Assuming 50 limit for now, PHPs config had a constant
 
     return NextResponse.json({ success: true, logs });
 }
@@ -99,7 +106,7 @@ async function handleSaveSettings(request) {
     // Prepare update data
     const updateData = {
         days_before_expiry: parseInt(data.days_before_expiry || 30),
-        is_active: data.is_active ? 1 : 0
+        is_active: data.is_active ? true : false
     };
 
     if (data.telegram_bot_token) {
