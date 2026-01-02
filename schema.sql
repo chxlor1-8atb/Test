@@ -1,0 +1,77 @@
+
+-- Users Table
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  full_name VARCHAR(255),
+  role VARCHAR(50) DEFAULT 'user',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Shops Table
+CREATE TABLE IF NOT EXISTS shops (
+  id SERIAL PRIMARY KEY,
+  shop_name VARCHAR(255) NOT NULL,
+  owner_name VARCHAR(255),
+  address TEXT,
+  phone VARCHAR(50),
+  email VARCHAR(255),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- License Types Table
+CREATE TABLE IF NOT EXISTS license_types (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  validity_days INTEGER DEFAULT 365,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Licenses Table
+CREATE TABLE IF NOT EXISTS licenses (
+  id SERIAL PRIMARY KEY,
+  shop_id INTEGER REFERENCES shops(id) ON DELETE CASCADE,
+  license_type_id INTEGER REFERENCES license_types(id) ON DELETE SET NULL,
+  license_number VARCHAR(100) NOT NULL,
+  issue_date DATE,
+  expiry_date DATE,
+  status VARCHAR(50) DEFAULT 'active',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Notification Settings
+CREATE TABLE IF NOT EXISTS notification_settings (
+    id SERIAL PRIMARY KEY,
+    telegram_bot_token VARCHAR(255),
+    telegram_chat_id VARCHAR(255),
+    days_before_expiry INTEGER DEFAULT 30,
+    is_active BOOLEAN DEFAULT false,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Notification Logs
+CREATE TABLE IF NOT EXISTS notification_logs (
+    id SERIAL PRIMARY KEY,
+    shop_name VARCHAR(255),
+    status VARCHAR(50), 
+    message TEXT,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Initial Admin User (password: admin)
+INSERT INTO users (username, password, full_name, role)
+VALUES ('admin', '$2a$10$YourHashHereOrGeneratedInScript', 'Administrator', 'admin')
+ON CONFLICT (username) DO NOTHING;
+
+-- Initial Notification Settings
+INSERT INTO notification_settings (id, days_before_expiry, is_active)
+VALUES (1, 30, false)
+ON CONFLICT (id) DO NOTHING;

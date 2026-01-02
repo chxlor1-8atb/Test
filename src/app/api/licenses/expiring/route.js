@@ -13,7 +13,7 @@ export async function GET() {
         const query = `
             SELECT 
                 l.id, l.license_number, l.expiry_date, l.status,
-                s.shop_name, s.shop_code,
+                s.shop_name,
                 lt.name as type_name,
                 (l.expiry_date - CURRENT_DATE) as days_until_expiry
             FROM licenses l

@@ -9,6 +9,8 @@ export async function query(sqlQuery, params = []) {
     return results;
 }
 
+export const executeQuery = query;
+
 export async function fetchOne(sqlQuery, params = []) {
     const results = await query(sqlQuery, params);
     return results[0] || null;
