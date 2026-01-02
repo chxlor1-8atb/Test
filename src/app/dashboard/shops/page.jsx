@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
+import Loading from '@/components/Loading';
 
 export default function ShopsPage() {
     const [shops, setShops] = useState([]);

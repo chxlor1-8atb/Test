@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import CustomSelect from '@/components/ui/CustomSelect';
+import Loading from '@/components/Loading';
 
 export default function ExpiringPage() {
     const [allLicenses, setAllLicenses] = useState([]);

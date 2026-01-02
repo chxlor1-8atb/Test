@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import Loading from '@/components/Loading';
 
 export default function NotificationsPage() {
     const [settings, setSettings] = useState({

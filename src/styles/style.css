@@ -3956,6 +3956,8 @@ div:where(.swal2-container) .swal2-close:hover {
     justify-content: center;
     padding: 3rem;
     gap: 1.5rem;
+    min-height: 400px;
+    width: 100%;
 }
 
 .loading-fullpage {

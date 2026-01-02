@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import CustomSelect from '@/components/ui/CustomSelect';
+import Loading from '@/components/Loading';
 
 export default function LicensesPage() {
     const [licenses, setLicenses] = useState([]);

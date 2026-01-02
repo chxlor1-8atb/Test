@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import Loading from '@/components/Loading';
 
 export default function LicenseTypesPage() {
     const [types, setTypes] = useState([]);
