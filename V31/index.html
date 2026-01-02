@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - ระบบจัดการใบอนุญาตร้านค้า</title>
+    <link rel="icon" type="image/png" href="image/fav.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Cloudflare Turnstile CAPTCHA -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <link rel="stylesheet" href="css/login-base.css">
+    <link rel="stylesheet" href="css/login-responsive.css">
+    <link rel="stylesheet" href="css/login-slide.css">
+</head>
+
+<body>
+    <div class="bg-shapes">
+        <div class="shape shape--1"></div>
+        <div class="shape shape--2"></div>
+        <div class="shape shape--3"></div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Left Side - Info -->
+            <div class="card-left">
+                <div class="card-left__content">
+                    <div class="brand">
+                        <div class="brand__logo">
+                            <img src="image/shop-logo.png" alt="Shop License" class="brand__logo-img">
+                        </div>
+                        <span class="brand__name">Shop License</span>
+                    </div>
+
+                    <h1 class="hero__title">
+                        ระบบจัดการ<br>
+                        <span class="hero__title--highlight">ใบอนุญาตร้านค้า</span>
+                    </h1>
+
+                    <p class="hero__description">
+                        ยกระดับการจัดการร้านค้าของคุณด้วยระบบที่ใช้งานง่าย ออกแบบมาเพื่อ
+                        ความเรียบง่าย ปลอดภัย และรวดเร็ว ให้การจัดการใบอนุญาตเป็นเรื่องง่ายในทุกวัน
+                    </p>
+
+                    <div class="features">
+                        <div class="features__label">คุณสมบัติเด่น</div>
+                        <div class="features__list">
+                            <div class="feature-tag feature-tag--purple">
+                                <i class="fas fa-check"></i>
+                                จัดการร้านค้า
+                            </div>
+                            <div class="feature-tag feature-tag--blue">
+                                <i class="fas fa-check"></i>
+                                บันทึกใบอนุญาต
+                            </div>
+                            <div class="feature-tag feature-tag--green">
+                                <i class="fas fa-check"></i>
+                                แจ้งเตือน Telegram
+                            </div>
+                            <div class="feature-tag feature-tag--orange">
+                                <i class="fas fa-check"></i>
+                                Export CSV/PDF
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Form -->
+            <div class="card-right">
+                <!-- Wave Divider SVG - positioned at the left edge of card-right -->
+                <svg class="wave-divider" viewBox="0 0 50 500" preserveAspectRatio="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50,0 
+                             C25,50 0,80 25,125 
+                             C50,170 0,200 25,250 
+                             C50,300 0,330 25,375 
+                             C50,420 25,450 25,500 
+                             L50,500 Z" fill="white" />
+                </svg>
+                <header class="form-header">
+                    <h2 class="form-header__title">ยินดีต้อนรับกลับมา</h2>
+                    <p class="form-header__subtitle">เข้าสู่ระบบเพื่อดำเนินการต่อ</p>
+                </header>
+
+                <div class="error-message" id="errorMessage">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="errorText"></span>
+                </div>
+
+                <form id="loginForm" novalidate>
+                    <div class="input-group">
+                        <input type="text" id="username" class="input-field" placeholder=" " required
+                            data-error-msg="กรุณากรอกชื่อผู้ใช้">
+                        <label for="username" class="input-label">ชื่อผู้ใช้</label>
+                        <i class="fas fa-user input-icon"></i>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" id="password" class="input-field input-field--with-toggle"
+                            placeholder=" " required data-error-msg="กรุณากรอกรหัสผ่าน">
+                        <label for="password" class="input-label">รหัสผ่าน</label>
+                        <i class="fas fa-lock input-icon"></i>
+                        <button type="button" class="password-toggle" id="toggleBtn">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <!-- Remember Me Checkbox -->
+                    <div class="remember-me">
+                        <label class="remember-me__label">
+                            <input type="checkbox" id="rememberMe" class="remember-me__checkbox">
+                            <span class="remember-me__checkmark"></span>
+                            <span class="remember-me__text">จดจำฉัน</span>
+                        </label>
+                    </div>
+
+                    <!-- Cloudflare Turnstile CAPTCHA Widget - Only show in production -->
+                    <div id="captchaContainer" class="captcha-container">
+                        <div class="cf-turnstile" data-sitekey="0x4AAAAAACGLJgpZShtyGkT0" data-theme="light"></div>
+                    </div>
+
+                    <div class="btn-wrapper">
+                        <!-- Slide to Login -->
+                        <div class="slide-container" id="slideContainer">
+                            <div class="slide-bg" id="slideBg"></div>
+                            <div class="slide-text">เลื่อนเพื่อเข้าสู่ระบบ »</div>
+                            <div class="slider-btn" id="sliderBtn">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                        </div>
+                        <!-- Hidden submit button for form -->
+                        <button type="submit" class="btn-submit" style="display:none;"></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Transition Overlay -->
+    <div class="page-transition" id="pageTransition">
+        <div class="page-transition__bg"></div>
+        <div class="page-transition__content">
+            <div class="page-transition__logo">
+                <img src="image/shop-logo.png" alt="Shop License">
+            </div>
+            <div class="page-transition__spinner"></div>
+            <div class="page-transition__success">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="page-transition__text">กำลังเข้าสู่ระบบ...</div>
+        </div>
+    </div>
+
+    <script>
+        // Hide CAPTCHA on localhost
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            const captchaContainer = document.getElementById('captchaContainer');
+            if (captchaContainer) {
+                captchaContainer.style.display = 'none';
+            }
+        }
+
+        // ====================================
+        // REMEMBER ME FUNCTIONALITY
+        // ====================================
+        const rememberMeCheckbox = document.getElementById('rememberMe');
+        const usernameField = document.getElementById('username');
+        const passwordFieldRemember = document.getElementById('password');
+
+        // Load saved credentials on page load
+        function loadSavedCredentials() {
+            const savedData = localStorage.getItem('rememberMe');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(atob(savedData));
+                    if (data.username && data.password) {
+                        usernameField.value = data.username;
+                        passwordFieldRemember.value = atob(data.password);
+                        rememberMeCheckbox.checked = true;
+                    }
+                } catch (e) {
+                    // Invalid data, clear it
+                    localStorage.removeItem('rememberMe');
+                }
+            }
+        }
+
+        // Save credentials to localStorage
+        function saveCredentials(username, password) {
+            const data = {
+                username: username,
+                password: btoa(password) // Basic encoding (not secure, just obfuscation)
+            };
+            localStorage.setItem('rememberMe', btoa(JSON.stringify(data)));
+        }
+
+        // Clear saved credentials
+        function clearCredentials() {
+            localStorage.removeItem('rememberMe');
+        }
+
+        // Load on page ready
+        loadSavedCredentials();
+
+        // Password toggle - supports both hover (peek) and click (toggle)
+        const toggleBtn = document.getElementById('toggleBtn');
+        const passwordField = document.getElementById('password');
+        let isToggled = false; // Track if user clicked to toggle permanently
+
+        // Click to toggle show/hide permanently
+        toggleBtn.addEventListener('click', function () {
+            const icon = this.querySelector('i');
+            isToggled = !isToggled;
+
+            if (isToggled) {
+                passwordField.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+
+        // Hover to peek password temporarily (only if not toggled on)
+        toggleBtn.addEventListener('mouseenter', function () {
+            if (!isToggled) {
+                passwordField.type = 'text';
+            }
+        });
+
+        toggleBtn.addEventListener('mouseleave', function () {
+            if (!isToggled) {
+                passwordField.type = 'password';
+            }
+        });
+
+        // ====================================
+        // SLIDE TO LOGIN FUNCTIONALITY
+        // ====================================
+
+        const sliderBtn = document.getElementById('sliderBtn');
+        const slideContainer = document.getElementById('slideContainer');
+        const slideBg = document.getElementById('slideBg');
+        const loginForm = document.getElementById('loginForm');
+
+        let isDragging = false;
+        let startX = 0;
+        let currentX = 0;
+        let sliderLeft = 0;
+
+        // Mouse events
+        sliderBtn.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', endDrag);
+
+        // Touch events
+        sliderBtn.addEventListener('touchstart', startDrag, { passive: false });
+        document.addEventListener('touchmove', drag, { passive: false });
+        document.addEventListener('touchend', endDrag);
+
+        function startDrag(e) {
+            // Prevent if already unlocked or loading
+            if (slideContainer.classList.contains('unlocked') ||
+                slideContainer.classList.contains('loading')) return;
+
+            // Reset error state if exists
+            slideContainer.classList.remove('error');
+
+            isDragging = true;
+            startX = (e.type === 'touchstart') ? e.touches[0].clientX : e.clientX;
+            sliderLeft = sliderBtn.offsetLeft;
+
+            // Disable transitions during drag
+            sliderBtn.style.transition = 'transform 0.15s ease';
+            slideBg.style.transition = 'none';
+
+            e.preventDefault();
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+
+            const clientX = (e.type === 'touchmove') ? e.touches[0].clientX : e.clientX;
+            let moveX = clientX - startX;
+            let newLeft = sliderLeft + moveX;
+
+            const maxMove = slideContainer.offsetWidth - sliderBtn.offsetWidth - 6;
+
+            // Constrain movement
+            if (newLeft < 4) newLeft = 4;
+            if (newLeft > maxMove) newLeft = maxMove;
+
+            sliderBtn.style.left = newLeft + 'px';
+            slideBg.style.width = (newLeft + 25) + 'px';
+
+            currentX = newLeft;
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+
+            const maxMove = slideContainer.offsetWidth - sliderBtn.offsetWidth - 6;
+
+            // Re-enable transitions
+            sliderBtn.style.transition = 'left 0.3s ease, transform 0.15s ease, background 0.3s ease';
+            slideBg.style.transition = 'width 0.3s ease';
+
+            // Check if slid far enough (80%)
+            if (currentX > maxMove * 0.8) {
+                // Trigger login
+                triggerLogin();
+            } else {
+                // Snap back
+                sliderBtn.style.left = '4px';
+                slideBg.style.width = '0px';
+            }
+
+            currentX = 0;
+        }
+
+        async function triggerLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+
+            // Hide previous error
+            errorMessage.style.display = 'none';
+            errorMessage.classList.remove('show');
+
+            // Validate fields with specific messages
+            if (!username && !password) {
+                showError('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
+                resetSlider();
+                return;
+            }
+            if (!username) {
+                showError('กรุณากรอกชื่อผู้ใช้');
+                resetSlider();
+                return;
+            }
+            if (!password) {
+                showError('กรุณากรอกรหัสผ่าน');
+                resetSlider();
+                return;
+            }
+
+            // Get CAPTCHA token
+            const captchaResponse = document.querySelector('[name="cf-turnstile-response"]')?.value;
+
+            // Show loading state
+            slideContainer.classList.add('loading');
+            sliderBtn.style.left = (slideContainer.offsetWidth - sliderBtn.offsetWidth - 6) + 'px';
+            slideBg.style.width = '100%';
+
+            try {
+                const response = await fetch('api/auth.php?action=login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        'cf-turnstile-response': captchaResponse
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Success state
+                    slideContainer.classList.remove('loading');
+                    slideContainer.classList.add('unlocked');
+
+                    // Save or clear credentials based on Remember Me checkbox
+                    if (rememberMeCheckbox.checked) {
+                        saveCredentials(username, password);
+                    } else {
+                        clearCredentials();
+                    }
+
+                    // Show page transition animation
+                    const pageTransition = document.getElementById('pageTransition');
+
+                    // Start exit animation on current page
+                    document.body.classList.add('page-exiting');
+
+                    // Activate transition overlay
+                    setTimeout(() => {
+                        pageTransition.classList.add('active');
+                    }, 200);
+
+                    // Show success state
+                    setTimeout(() => {
+                        pageTransition.classList.add('success');
+                        document.querySelector('.page-transition__text').textContent = 'เข้าสู่ระบบสำเร็จ!';
+                    }, 1000);
+
+                    // Redirect after animation completes
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1800);
+                } else {
+                    // Error state
+                    slideContainer.classList.remove('loading');
+                    showError(data.message || 'เข้าสู่ระบบไม่สำเร็จ');
+
+                    // Reset after shake
+                    setTimeout(() => {
+                        slideContainer.classList.remove('error');
+                        resetSlider();
+                    }, 600);
+
+                    // Reset CAPTCHA
+                    if (window.turnstile) {
+                        window.turnstile.reset();
+                    }
+                }
+            } catch (error) {
+                // Connection error
+                slideContainer.classList.remove('loading');
+                showError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+
+                // Reset after shake
+                setTimeout(() => {
+                    slideContainer.classList.remove('error');
+                    resetSlider();
+                }, 600);
+
+                // Reset CAPTCHA
+                if (window.turnstile) {
+                    window.turnstile.reset();
+                }
+            }
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+
+            // Reset animation by re-adding element
+            errorMessage.style.display = 'none';
+            errorMessage.offsetHeight; // Trigger reflow
+
+            errorText.textContent = message;
+            errorMessage.style.display = 'flex';
+            errorMessage.classList.add('show');
+            slideContainer.classList.add('error');
+        }
+
+        function resetSlider() {
+            sliderBtn.style.transition = 'left 0.3s ease, background 0.3s ease';
+            slideBg.style.transition = 'width 0.3s ease';
+            sliderBtn.style.left = '4px';
+            slideBg.style.width = '0px';
+
+            // Reset icon
+            const icon = sliderBtn.querySelector('i');
+            icon.className = 'fas fa-arrow-right';
+        }
+
+        // Handle form submit (Enter key) - trigger login
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Don't trigger if already loading or unlocked
+            if (slideContainer.classList.contains('loading') ||
+                slideContainer.classList.contains('unlocked')) return;
+
+            // Trigger the login process
+            triggerLogin();
+        });
+    </script>
+</body>
+
+</html>
