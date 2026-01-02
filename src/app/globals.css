@@ -1,0 +1,15 @@
+@import '../styles/login-base.css';
+@import '../styles/login-responsive.css';
+@import '../styles/login-slide.css';
+@import '../styles/style.css';
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-thai: 'Noto Sans Thai', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-thai);
+}
