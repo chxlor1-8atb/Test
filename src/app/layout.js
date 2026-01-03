@@ -44,19 +44,12 @@ export default function RootLayout({ children }) {
                 {/* Preconnect for critical resources */}
                 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
 
-                {/* Font Awesome - async loading to prevent render blocking */}
+                {/* Font Awesome - load directly */}
                 <link
-                    rel="preload"
+                    rel="stylesheet"
                     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-                    as="style"
-                    onLoad="this.onload=null;this.rel='stylesheet'"
+                    crossOrigin="anonymous"
                 />
-                <noscript>
-                    <link
-                        rel="stylesheet"
-                        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-                    />
-                </noscript>
             </head>
             <body>
                 {children}
