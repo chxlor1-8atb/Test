@@ -5,16 +5,15 @@ import Swal from 'sweetalert2';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Loading from '@/components/Loading';
 import Pagination from '@/components/ui/Pagination';
+import EditableCell from '@/components/ui/EditableCell';
 
 export default function UsersPage() {
     const [users, setUsers] = useState([]);
     const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
-    const [currentUser, setCurrentUser] = useState(null); // In real app, get from context/session
 
-    // Modal
+    // Modal (for adding new and changing password)
     const [showModal, setShowModal] = useState(false);
-    const [isEdit, setIsEdit] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
         username: '',
@@ -24,8 +23,6 @@ export default function UsersPage() {
     });
 
     useEffect(() => {
-        // Fetch current user info for checking self-deletion prevention (optional but good UI)
-        // For now, assume admin access verified by layout or middleware
         loadUsers();
     }, [pagination.page]);
 
@@ -41,7 +38,6 @@ export default function UsersPage() {
                 setUsers(data.users || []);
                 setPagination(prev => ({ ...prev, ...data.pagination }));
 
-                // Auto-correct page if out of bounds
                 if (data.pagination.page > data.pagination.totalPages && data.pagination.totalPages > 0) {
                     setPagination(prev => ({ ...prev, page: data.pagination.totalPages }));
                 }
@@ -50,6 +46,38 @@ export default function UsersPage() {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Inline update function
+    const handleInlineUpdate = async (userId, field, value) => {
+        try {
+            const user = users.find(u => u.id === userId);
+            const updateData = {
+                id: userId,
+                username: user.username,
+                full_name: user.full_name || '',
+                role: user.role,
+                [field]: value
+            };
+
+            const res = await fetch('/api/users', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setUsers(prev => prev.map(u =>
+                    u.id === userId ? { ...u, [field]: value } : u
+                ));
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+            throw error;
         }
     };
 
@@ -81,35 +109,22 @@ export default function UsersPage() {
         }
     };
 
-    const openModal = (user = null) => {
-        if (user) {
-            setIsEdit(true);
-            setFormData({
-                id: user.id,
-                username: user.username,
-                full_name: user.full_name || '',
-                password: '', // Don't show password
-                role: user.role
-            });
-        } else {
-            setIsEdit(false);
-            setFormData({
-                id: '',
-                username: '',
-                full_name: '',
-                password: '',
-                role: 'staff'
-            });
-        }
+    const openModal = () => {
+        setFormData({
+            id: '',
+            username: '',
+            full_name: '',
+            password: '',
+            role: 'staff'
+        });
         setShowModal(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const method = isEdit ? 'PUT' : 'POST';
             const res = await fetch('/api/users', {
-                method,
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
@@ -138,12 +153,34 @@ export default function UsersPage() {
         });
     };
 
+    const roleOptions = [
+        { value: 'staff', label: 'เจ้าหน้าที่' },
+        { value: 'admin', label: 'ผู้ดูแลระบบ' }
+    ];
+
+    const getRoleBadge = (role) => {
+        return (
+            <span className={`badge ${role === 'admin' ? 'badge-admin' : 'badge-staff'}`}
+                style={{
+                    backgroundColor: role === 'admin' ? 'rgba(124, 58, 237, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                    color: role === 'admin' ? '#7c3aed' : '#3b82f6',
+                    border: `1px solid ${role === 'admin' ? 'rgba(124, 58, 237, 0.2)' : 'rgba(59, 130, 246, 0.2)'}`,
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600
+                }}>
+                {role === 'admin' ? 'ผู้ดูแลระบบ' : 'เจ้าหน้าที่'}
+            </span>
+        );
+    };
+
     return (
         <>
             <div className="card">
                 <div className="card-header">
                     <h3 className="card-title"><i className="fas fa-users"></i> รายการผู้ใช้งาน</h3>
-                    <button className="btn btn-primary btn-sm" onClick={() => openModal()}>
+                    <button className="btn btn-primary btn-sm" onClick={openModal}>
                         <i className="fas fa-plus"></i> เพิ่มผู้ใช้
                     </button>
                 </div>
@@ -156,7 +193,7 @@ export default function UsersPage() {
                                     <th>ชื่อ-นามสกุล</th>
                                     <th>บทบาท</th>
                                     <th>วันที่สร้าง</th>
-                                    <th className="text-center" style={{ width: '150px' }}>จัดการ</th>
+                                    <th className="text-center" style={{ width: '80px' }}>ลบ</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -167,7 +204,7 @@ export default function UsersPage() {
                                             <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '80%' }}></div></td>
                                             <td><div className="skeleton-cell skeleton-animate" style={{ height: '1.5rem', width: '3rem', borderRadius: '9999px' }}></div></td>
                                             <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '60%' }}></div></td>
-                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '2rem', width: '4rem', margin: '0 auto', borderRadius: '0.5rem' }}></div></td>
+                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '2rem', width: '2rem', margin: '0 auto', borderRadius: '0.5rem' }}></div></td>
                                         </tr>
                                     ))
                                 ) : users.length === 0 ? (
@@ -175,32 +212,33 @@ export default function UsersPage() {
                                 ) : (
                                     users.map(u => (
                                         <tr key={u.id}>
-                                            <td>{u.username}</td>
-                                            <td>{u.full_name}</td>
                                             <td>
-                                                <span className={`badge ${u.role === 'admin' ? 'badge-admin' : 'badge-staff'}`}
-                                                    style={{
-                                                        backgroundColor: u.role === 'admin' ? 'rgba(124, 58, 237, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                                                        color: u.role === 'admin' ? '#7c3aed' : '#3b82f6',
-                                                        border: `1px solid ${u.role === 'admin' ? 'rgba(124, 58, 237, 0.2)' : 'rgba(59, 130, 246, 0.2)'}`,
-                                                        padding: '0.25rem 0.75rem',
-                                                        borderRadius: '9999px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: 600
-                                                    }}>
-                                                    {u.role === 'admin' ? 'ผู้ดูแลระบบ' : 'เจ้าหน้าที่'}
+                                                <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
+                                                    {u.username}
                                                 </span>
+                                            </td>
+                                            <td>
+                                                <EditableCell
+                                                    value={u.full_name || ''}
+                                                    displayValue={u.full_name || '-'}
+                                                    type="text"
+                                                    onSave={(value) => handleInlineUpdate(u.id, 'full_name', value)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <EditableCell
+                                                    value={u.role}
+                                                    displayValue={getRoleBadge(u.role)}
+                                                    type="select"
+                                                    options={roleOptions}
+                                                    onSave={(value) => handleInlineUpdate(u.id, 'role', value)}
+                                                />
                                             </td>
                                             <td>{formatDate(u.created_at)}</td>
                                             <td className="text-center">
-                                                <div className="action-buttons">
-                                                    <button className="btn btn-secondary btn-icon" onClick={() => openModal(u)}>
-                                                        <i className="fas fa-edit"></i>
-                                                    </button>
-                                                    <button className="btn btn-danger btn-icon" onClick={() => handleDelete(u.id)}>
-                                                        <i className="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
+                                                <button className="btn btn-danger btn-icon" onClick={() => handleDelete(u.id)}>
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -223,14 +261,14 @@ export default function UsersPage() {
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* Modal - Only for Adding New */}
             {showModal && (
                 <div className="modal-overlay show" style={{ display: 'flex' }} onClick={(e) => {
                     if (e.target === e.currentTarget) setShowModal(false);
                 }}>
                     <div className="modal show" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3 className="modal-title">{isEdit ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'}</h3>
+                            <h3 className="modal-title">เพิ่มผู้ใช้ใหม่</h3>
                             <button className="modal-close" onClick={() => setShowModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
@@ -245,8 +283,6 @@ export default function UsersPage() {
                                         value={formData.username}
                                         onChange={handleChange}
                                         required
-                                        readOnly={isEdit}
-                                        style={isEdit ? { backgroundColor: '#f3f4f6', cursor: 'not-allowed' } : {}}
                                     />
                                 </div>
                                 <div className="form-group">
@@ -260,13 +296,13 @@ export default function UsersPage() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>รหัสผ่าน {isEdit ? '(เว้นว่างถ้าไม่ต้องการเปลี่ยน)' : '*'}</label>
+                                    <label>รหัสผ่าน *</label>
                                     <input
                                         type="password"
                                         name="password"
                                         value={formData.password}
                                         onChange={handleChange}
-                                        required={!isEdit}
+                                        required
                                     />
                                 </div>
                                 <div className="form-group">
@@ -275,10 +311,7 @@ export default function UsersPage() {
                                         name="role"
                                         value={formData.role}
                                         onChange={handleChange}
-                                        options={[
-                                            { value: 'staff', label: 'เจ้าหน้าที่' },
-                                            { value: 'admin', label: 'ผู้ดูแลระบบ' }
-                                        ]}
+                                        options={roleOptions}
                                         placeholder="เลือกบทบาท"
                                     />
                                 </div>

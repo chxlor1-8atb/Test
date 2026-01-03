@@ -6,6 +6,7 @@ import CustomSelect from '@/components/ui/CustomSelect';
 import Loading from '@/components/Loading';
 import DatePicker from '@/components/ui/DatePicker';
 import Pagination from '@/components/ui/Pagination';
+import EditableCell from '@/components/ui/EditableCell';
 
 export default function LicensesPage() {
     const [licenses, setLicenses] = useState([]);
@@ -21,7 +22,6 @@ export default function LicensesPage() {
 
     // Modal
     const [showModal, setShowModal] = useState(false);
-    const [isEdit, setIsEdit] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
         shop_id: '',
@@ -87,6 +87,45 @@ export default function LicensesPage() {
         }
     };
 
+    // Inline update function
+    const handleInlineUpdate = async (licenseId, field, value) => {
+        try {
+            const license = licenses.find(l => l.id === licenseId);
+            const updateData = {
+                id: licenseId,
+                shop_id: license.shop_id,
+                license_type_id: license.license_type_id,
+                license_number: license.license_number,
+                issue_date: license.issue_date ? license.issue_date.split('T')[0] : '',
+                expiry_date: license.expiry_date ? license.expiry_date.split('T')[0] : '',
+                status: license.status,
+                notes: license.notes || '',
+                [field]: value
+            };
+
+            const res = await fetch('/api/licenses', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // Update local state
+                setLicenses(prev => prev.map(l =>
+                    l.id === licenseId ? { ...l, [field]: value } : l
+                ));
+                // Reload to get updated display names
+                loadLicenses();
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+            throw error;
+        }
+    };
+
     const handleDelete = async (id) => {
         const result = await Swal.fire({
             title: 'ยืนยันการลบ?',
@@ -115,41 +154,25 @@ export default function LicensesPage() {
         }
     };
 
-    const openModal = (license = null) => {
-        if (license) {
-            setIsEdit(true);
-            setFormData({
-                id: license.id,
-                shop_id: license.shop_id,
-                license_type_id: license.license_type_id,
-                license_number: license.license_number,
-                issue_date: license.issue_date ? license.issue_date.split('T')[0] : '',
-                expiry_date: license.expiry_date ? license.expiry_date.split('T')[0] : '',
-                status: license.status,
-                notes: license.notes || ''
-            });
-        } else {
-            setIsEdit(false);
-            setFormData({
-                id: '',
-                shop_id: '',
-                license_type_id: '',
-                license_number: '',
-                issue_date: new Date().toISOString().split('T')[0],
-                expiry_date: '',
-                status: 'active',
-                notes: ''
-            });
-        }
+    const openModal = () => {
+        setFormData({
+            id: '',
+            shop_id: '',
+            license_type_id: '',
+            license_number: '',
+            issue_date: new Date().toISOString().split('T')[0],
+            expiry_date: '',
+            status: 'active',
+            notes: ''
+        });
         setShowModal(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const method = isEdit ? 'PUT' : 'POST';
             const res = await fetch('/api/licenses', {
-                method,
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
@@ -189,6 +212,14 @@ export default function LicensesPage() {
         return <span className={`badge ${map[status] || ''}`}>{text[status] || status}</span>;
     };
 
+    const statusOptions = [
+        { value: 'active', label: 'ปกติ' },
+        { value: 'pending', label: 'กำลังดำเนินการ' },
+        { value: 'expired', label: 'หมดอายุ' },
+        { value: 'suspended', label: 'ถูกพักใช้' },
+        { value: 'revoked', label: 'ถูกเพิกถอน' }
+    ];
+
     const formatDate = (dateString) => {
         if (!dateString) return '-';
         return new Date(dateString).toLocaleDateString('th-TH', {
@@ -201,7 +232,7 @@ export default function LicensesPage() {
             <div className="card">
                 <div className="card-header">
                     <h3 className="card-title"><i className="fas fa-file-alt"></i> รายการใบอนุญาต</h3>
-                    <button className="btn btn-primary btn-sm" onClick={() => openModal()}>
+                    <button className="btn btn-primary btn-sm" onClick={openModal}>
                         <i className="fas fa-plus"></i> เพิ่มใบอนุญาต
                     </button>
                 </div>
@@ -248,7 +279,7 @@ export default function LicensesPage() {
                                     <th className="text-center">วันออก</th>
                                     <th className="text-center">หมดอายุ</th>
                                     <th className="text-center">สถานะ</th>
-                                    <th className="text-center" style={{ width: '150px' }}>จัดการ</th>
+                                    <th className="text-center" style={{ width: '80px' }}>ลบ</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -260,7 +291,7 @@ export default function LicensesPage() {
                                             <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '60%', margin: '0 auto' }}></div></td>
                                             <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '60%', margin: '0 auto' }}></div></td>
                                             <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '1.5rem', width: '4rem', margin: '0 auto', borderRadius: '9999px' }}></div></td>
-                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '2rem', width: '4rem', margin: '0 auto', borderRadius: '0.5rem' }}></div></td>
+                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '2rem', width: '2rem', margin: '0 auto', borderRadius: '0.5rem' }}></div></td>
                                         </tr>
                                     ))
                                 ) : licenses.length === 0 ? (
@@ -268,20 +299,53 @@ export default function LicensesPage() {
                                 ) : (
                                     licenses.map(l => (
                                         <tr key={l.id}>
-                                            <td>{l.shop_name}</td>
-                                            <td>{l.type_name}</td>
-                                            <td className="text-center">{formatDate(l.issue_date)}</td>
-                                            <td className="text-center">{formatDate(l.expiry_date)}</td>
-                                            <td className="text-center">{getStatusBadge(l.status)}</td>
+                                            <td>
+                                                <EditableCell
+                                                    value={l.shop_id}
+                                                    displayValue={l.shop_name}
+                                                    type="select"
+                                                    options={shopsList.map(s => ({ value: s.id, label: s.shop_name }))}
+                                                    onSave={(value) => handleInlineUpdate(l.id, 'shop_id', value)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <EditableCell
+                                                    value={l.license_type_id}
+                                                    displayValue={l.type_name}
+                                                    type="select"
+                                                    options={typesList.map(t => ({ value: t.id, label: t.name }))}
+                                                    onSave={(value) => handleInlineUpdate(l.id, 'license_type_id', value)}
+                                                />
+                                            </td>
                                             <td className="text-center">
-                                                <div className="action-buttons">
-                                                    <button className="btn btn-secondary btn-icon" onClick={() => openModal(l)}>
-                                                        <i className="fas fa-edit"></i>
-                                                    </button>
-                                                    <button className="btn btn-danger btn-icon" onClick={() => handleDelete(l.id)}>
-                                                        <i className="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
+                                                <EditableCell
+                                                    value={l.issue_date ? l.issue_date.split('T')[0] : ''}
+                                                    displayValue={formatDate(l.issue_date)}
+                                                    type="date"
+                                                    onSave={(value) => handleInlineUpdate(l.id, 'issue_date', value)}
+                                                />
+                                            </td>
+                                            <td className="text-center">
+                                                <EditableCell
+                                                    value={l.expiry_date ? l.expiry_date.split('T')[0] : ''}
+                                                    displayValue={formatDate(l.expiry_date)}
+                                                    type="date"
+                                                    onSave={(value) => handleInlineUpdate(l.id, 'expiry_date', value)}
+                                                />
+                                            </td>
+                                            <td className="text-center">
+                                                <EditableCell
+                                                    value={l.status}
+                                                    displayValue={getStatusBadge(l.status)}
+                                                    type="select"
+                                                    options={statusOptions}
+                                                    onSave={(value) => handleInlineUpdate(l.id, 'status', value)}
+                                                />
+                                            </td>
+                                            <td className="text-center">
+                                                <button className="btn btn-danger btn-icon" onClick={() => handleDelete(l.id)}>
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -304,14 +368,14 @@ export default function LicensesPage() {
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* Modal - Only for Adding New */}
             {showModal && (
                 <div className="modal-overlay show" style={{ display: 'flex' }} onClick={(e) => {
                     if (e.target === e.currentTarget) setShowModal(false);
                 }}>
                     <div className="modal show" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3 className="modal-title">{isEdit ? 'แก้ไขใบอนุญาต' : 'เพิ่มใบอนุญาตใหม่'}</h3>
+                            <h3 className="modal-title">เพิ่มใบอนุญาตใหม่</h3>
                             <button className="modal-close" onClick={() => setShowModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
@@ -376,13 +440,7 @@ export default function LicensesPage() {
                                         name="status"
                                         value={formData.status}
                                         onChange={handleChange}
-                                        options={[
-                                            { value: 'active', label: 'ปกติ' },
-                                            { value: 'pending', label: 'กำลังดำเนินการ' },
-                                            { value: 'expired', label: 'หมดอายุ' },
-                                            { value: 'suspended', label: 'ถูกพักใช้' },
-                                            { value: 'revoked', label: 'ถูกเพิกถอน' }
-                                        ]}
+                                        options={statusOptions}
                                         placeholder="เลือกสถานะ"
                                     />
                                 </div>

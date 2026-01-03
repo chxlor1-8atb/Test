@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import Loading from '@/components/Loading';
+import EditableCell from '@/components/ui/EditableCell';
 
 export default function LicenseTypesPage() {
     const [types, setTypes] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Modal
+    // Modal (only for adding new)
     const [showModal, setShowModal] = useState(false);
-    const [isEdit, setIsEdit] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
         name: '',
@@ -33,6 +33,38 @@ export default function LicenseTypesPage() {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Inline update function
+    const handleInlineUpdate = async (typeId, field, value) => {
+        try {
+            const type = types.find(t => t.id === typeId);
+            const updateData = {
+                id: typeId,
+                name: type.name || type.type_name,
+                description: type.description || '',
+                validity_days: type.validity_days || 365,
+                [field]: value
+            };
+
+            const res = await fetch('/api/license-types', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setTypes(prev => prev.map(t =>
+                    t.id === typeId ? { ...t, [field]: value } : t
+                ));
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+            throw error;
         }
     };
 
@@ -64,33 +96,21 @@ export default function LicenseTypesPage() {
         }
     };
 
-    const openModal = (type = null) => {
-        if (type) {
-            setIsEdit(true);
-            setFormData({
-                id: type.id,
-                name: type.name || type.type_name, // Handle both just in case
-                description: type.description || '',
-                validity_days: type.validity_days || 365
-            });
-        } else {
-            setIsEdit(false);
-            setFormData({
-                id: '',
-                name: '',
-                description: '',
-                validity_days: 365
-            });
-        }
+    const openModal = () => {
+        setFormData({
+            id: '',
+            name: '',
+            description: '',
+            validity_days: 365
+        });
         setShowModal(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const method = isEdit ? 'PUT' : 'POST';
             const res = await fetch('/api/license-types', {
-                method,
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
@@ -145,7 +165,7 @@ export default function LicenseTypesPage() {
             <div className="card">
                 <div className="card-header">
                     <h3 className="card-title"><i className="fas fa-tags"></i> ประเภทใบอนุญาต</h3>
-                    <button className="btn btn-primary btn-sm" onClick={() => openModal()}>
+                    <button className="btn btn-primary btn-sm" onClick={openModal}>
                         <i className="fas fa-plus"></i> เพิ่มประเภท
                     </button>
                 </div>
@@ -158,7 +178,7 @@ export default function LicenseTypesPage() {
                                     <th>คำอธิบาย</th>
                                     <th>อายุ (วัน)</th>
                                     <th>ใบอนุญาต</th>
-                                    <th className="text-center" style={{ width: '150px' }}>จัดการ</th>
+                                    <th className="text-center" style={{ width: '80px' }}>ลบ</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -169,23 +189,39 @@ export default function LicenseTypesPage() {
                                 ) : (
                                     types.map(t => (
                                         <tr key={t.id}>
-                                            <td><strong>{t.name || t.type_name}</strong></td>
-                                            <td>{t.description || '-'}</td>
-                                            <td>{t.validity_days} วัน</td>
+                                            <td>
+                                                <EditableCell
+                                                    value={t.name || t.type_name}
+                                                    type="text"
+                                                    onSave={(value) => handleInlineUpdate(t.id, 'name', value)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <EditableCell
+                                                    value={t.description || ''}
+                                                    displayValue={t.description || '-'}
+                                                    type="text"
+                                                    placeholder="คำอธิบาย"
+                                                    onSave={(value) => handleInlineUpdate(t.id, 'description', value)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <EditableCell
+                                                    value={t.validity_days}
+                                                    displayValue={`${t.validity_days} วัน`}
+                                                    type="number"
+                                                    onSave={(value) => handleInlineUpdate(t.id, 'validity_days', parseInt(value))}
+                                                />
+                                            </td>
                                             <td>
                                                 <span className="badge badge-active">{t.license_count}</span>
                                             </td>
                                             <td className="text-center">
-                                                <div className="action-buttons">
-                                                    <button className="btn btn-secondary btn-icon" onClick={() => openModal(t)}>
-                                                        <i className="fas fa-edit"></i>
+                                                {parseInt(t.license_count) === 0 && (
+                                                    <button className="btn btn-danger btn-icon" onClick={() => handleDelete(t.id)}>
+                                                        <i className="fas fa-trash"></i>
                                                     </button>
-                                                    {parseInt(t.license_count) === 0 && (
-                                                        <button className="btn btn-danger btn-icon" onClick={() => handleDelete(t.id)}>
-                                                            <i className="fas fa-trash"></i>
-                                                        </button>
-                                                    )}
-                                                </div>
+                                                )}
                                             </td>
                                         </tr>
                                     ))
@@ -196,14 +232,14 @@ export default function LicenseTypesPage() {
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* Modal - Only for Adding New */}
             {showModal && (
                 <div className="modal-overlay show" style={{ display: 'flex' }} onClick={(e) => {
                     if (e.target === e.currentTarget) setShowModal(false);
                 }}>
                     <div className="modal show" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3 className="modal-title">{isEdit ? 'แก้ไขประเภท' : 'เพิ่มประเภทใหม่'}</h3>
+                            <h3 className="modal-title">เพิ่มประเภทใหม่</h3>
                             <button className="modal-close" onClick={() => setShowModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import Loading from '@/components/Loading';
 import Pagination from '@/components/ui/Pagination';
+import EditableCell from '@/components/ui/EditableCell';
 
 export default function ShopsPage() {
     const [shops, setShops] = useState([]);
@@ -11,7 +12,7 @@ export default function ShopsPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
 
-    // Modal State
+    // Modal State (only for adding new)
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
@@ -22,11 +23,10 @@ export default function ShopsPage() {
         email: '',
         notes: ''
     });
-    const [isEdit, setIsEdit] = useState(false);
 
     useEffect(() => {
         loadShops();
-    }, [pagination.page, search]); // Reload when page or search changes
+    }, [pagination.page, search]);
 
     const loadShops = async () => {
         setLoading(true);
@@ -43,7 +43,6 @@ export default function ShopsPage() {
                 setShops(data.shops);
                 setPagination(prev => ({ ...prev, ...data.pagination }));
 
-                // Auto-correct page if out of bounds (e.g. after deleting items)
                 if (data.pagination.page > data.pagination.totalPages && data.pagination.totalPages > 0) {
                     setPagination(prev => ({ ...prev, page: data.pagination.totalPages }));
                 }
@@ -55,9 +54,44 @@ export default function ShopsPage() {
         }
     };
 
+    // Inline update function
+    const handleInlineUpdate = async (shopId, field, value) => {
+        try {
+            const shop = shops.find(s => s.id === shopId);
+            const updateData = {
+                id: shopId,
+                shop_name: shop.shop_name,
+                owner_name: shop.owner_name || '',
+                address: shop.address || '',
+                phone: shop.phone || '',
+                email: shop.email || '',
+                notes: shop.notes || '',
+                [field]: value
+            };
+
+            const res = await fetch('/api/shops', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setShops(prev => prev.map(s =>
+                    s.id === shopId ? { ...s, [field]: value } : s
+                ));
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+            throw error;
+        }
+    };
+
     const handleSearch = (e) => {
         setSearch(e.target.value);
-        setPagination(prev => ({ ...prev, page: 1 })); // Reset to page 1 on search
+        setPagination(prev => ({ ...prev, page: 1 }));
     };
 
     const handleDelete = async (id) => {
@@ -69,11 +103,7 @@ export default function ShopsPage() {
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'ลบข้อมูล',
-            cancelButtonText: 'ยกเลิก',
-            background: '#fff',
-            customClass: {
-                popup: 'swal2-glass' // We assume you might have custom styles or just use default
-            }
+            cancelButtonText: 'ยกเลิก'
         });
 
         if (result.isConfirmed) {
@@ -98,39 +128,24 @@ export default function ShopsPage() {
         }
     };
 
-    const openModal = (shop = null) => {
-        if (shop) {
-            setIsEdit(true);
-            setFormData({
-                id: shop.id,
-                shop_name: shop.shop_name,
-                owner_name: shop.owner_name || '',
-                address: shop.address || '',
-                phone: shop.phone || '',
-                email: shop.email || '',
-                notes: shop.notes || ''
-            });
-        } else {
-            setIsEdit(false);
-            setFormData({
-                id: '',
-                shop_name: '',
-                owner_name: '',
-                address: '',
-                phone: '',
-                email: '',
-                notes: ''
-            });
-        }
+    const openModal = () => {
+        setFormData({
+            id: '',
+            shop_name: '',
+            owner_name: '',
+            address: '',
+            phone: '',
+            email: '',
+            notes: ''
+        });
         setShowModal(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const method = isEdit ? 'PUT' : 'POST';
             const res = await fetch('/api/shops', {
-                method,
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
@@ -165,7 +180,7 @@ export default function ShopsPage() {
                     <h3 className="card-title">
                         <i className="fas fa-store"></i> รายการร้านค้า
                     </h3>
-                    <button className="btn btn-primary btn-sm" onClick={() => openModal()}>
+                    <button className="btn btn-primary btn-sm" onClick={openModal}>
                         <i className="fas fa-plus"></i> เพิ่มร้านค้า
                     </button>
                 </div>
@@ -187,7 +202,7 @@ export default function ShopsPage() {
                                     <th>เจ้าของ</th>
                                     <th>โทรศัพท์</th>
                                     <th className="text-center">ใบอนุญาต</th>
-                                    <th className="text-center" style={{ width: '150px' }}>จัดการ</th>
+                                    <th className="text-center" style={{ width: '80px' }}>ลบ</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -198,7 +213,7 @@ export default function ShopsPage() {
                                             <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '70%' }}></div></td>
                                             <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '60%' }}></div></td>
                                             <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '1.5rem', width: '2rem', margin: '0 auto', borderRadius: '0.25rem' }}></div></td>
-                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '2rem', width: '4rem', margin: '0 auto', borderRadius: '0.5rem' }}></div></td>
+                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '2rem', width: '2rem', margin: '0 auto', borderRadius: '0.5rem' }}></div></td>
                                         </tr>
                                     ))
                                 ) : shops.length === 0 ? (
@@ -206,21 +221,38 @@ export default function ShopsPage() {
                                 ) : (
                                     shops.map(shop => (
                                         <tr key={shop.id}>
-                                            <td>{shop.shop_name}</td>
-                                            <td>{shop.owner_name || '-'}</td>
-                                            <td>{shop.phone || '-'}</td>
+                                            <td>
+                                                <EditableCell
+                                                    value={shop.shop_name}
+                                                    type="text"
+                                                    onSave={(value) => handleInlineUpdate(shop.id, 'shop_name', value)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <EditableCell
+                                                    value={shop.owner_name || ''}
+                                                    displayValue={shop.owner_name || '-'}
+                                                    type="text"
+                                                    placeholder="ชื่อเจ้าของ"
+                                                    onSave={(value) => handleInlineUpdate(shop.id, 'owner_name', value)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <EditableCell
+                                                    value={shop.phone || ''}
+                                                    displayValue={shop.phone || '-'}
+                                                    type="text"
+                                                    placeholder="เบอร์โทร"
+                                                    onSave={(value) => handleInlineUpdate(shop.id, 'phone', value)}
+                                                />
+                                            </td>
                                             <td className="text-center">
                                                 <span className="badge badge-active">{shop.license_count}</span>
                                             </td>
                                             <td className="text-center">
-                                                <div className="action-buttons">
-                                                    <button className="btn btn-secondary btn-icon" onClick={() => openModal(shop)}>
-                                                        <i className="fas fa-edit"></i>
-                                                    </button>
-                                                    <button className="btn btn-danger btn-icon" onClick={() => handleDelete(shop.id)}>
-                                                        <i className="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
+                                                <button className="btn btn-danger btn-icon" onClick={() => handleDelete(shop.id)}>
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -244,15 +276,14 @@ export default function ShopsPage() {
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* Modal - Only for Adding New */}
             {showModal && (
                 <div className="modal-overlay show" style={{ display: 'flex' }} onClick={(e) => {
-                    // Close on background click
                     if (e.target === e.currentTarget) setShowModal(false);
                 }}>
                     <div className="modal show" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3 className="modal-title">{isEdit ? 'แก้ไขร้านค้า' : 'เพิ่มร้านค้าใหม่'}</h3>
+                            <h3 className="modal-title">เพิ่มร้านค้าใหม่</h3>
                             <button className="modal-close" onClick={() => setShowModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
