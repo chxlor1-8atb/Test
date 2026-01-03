@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Loading from '@/components/Loading';
 import DatePicker from '@/components/ui/DatePicker';
+import Pagination from '@/components/ui/Pagination';
 
 export default function LicensesPage() {
     const [licenses, setLicenses] = useState([]);
@@ -288,28 +289,18 @@ export default function LicensesPage() {
                             </tbody>
                         </table>
                     </div>
-                    {/* Simple Pagination */}
-                    {(pagination.totalPages > 1 || pagination.page > 1) && (
-                        <div className="pagination">
-                            <button
-                                className="btn-page"
-                                disabled={pagination.page === 1}
-                                onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                            >
-                                ก่อนหน้า
-                            </button>
-                            <span className="page-info">
-                                หน้า {pagination.page} / {pagination.totalPages || 1}
-                            </span>
-                            <button
-                                className="btn-page"
-                                disabled={pagination.page >= pagination.totalPages}
-                                onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                            >
-                                ถัดไป
-                            </button>
-                        </div>
-                    )}
+                    {/* Modern Pagination */}
+                    <Pagination
+                        currentPage={pagination.page}
+                        totalPages={pagination.totalPages}
+                        totalItems={pagination.total}
+                        itemsPerPage={pagination.limit}
+                        onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
+                        onItemsPerPageChange={(limit) => setPagination(prev => ({ ...prev, limit, page: 1 }))}
+                        showItemsPerPage={true}
+                        showPageJump={true}
+                        showTotalInfo={true}
+                    />
                 </div>
             </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Loading from '@/components/Loading';
+import Pagination from '@/components/ui/Pagination';
 
 export default function ExpiringPage() {
     const [allLicenses, setAllLicenses] = useState([]);
@@ -219,28 +220,18 @@ export default function ExpiringPage() {
                     </table>
                 </div>
 
-                {/* Simple Pagination */}
-                {(totalPages > 1 || page > 1) && (
-                    <div className="pagination">
-                        <button
-                            className="btn-page"
-                            disabled={page === 1}
-                            onClick={() => setPage(page - 1)}
-                        >
-                            ก่อนหน้า
-                        </button>
-                        <span className="page-info">
-                            หน้า {page} / {totalPages || 1}
-                        </span>
-                        <button
-                            className="btn-page"
-                            disabled={page >= totalPages}
-                            onClick={() => setPage(page + 1)}
-                        >
-                            ถัดไป
-                        </button>
-                    </div>
-                )}
+                {/* Modern Pagination */}
+                <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    totalItems={filteredLicenses.length}
+                    itemsPerPage={limit}
+                    onPageChange={(p) => setPage(p)}
+                    onItemsPerPageChange={(l) => { setLimit(l); setPage(1); }}
+                    showItemsPerPage={true}
+                    showPageJump={true}
+                    showTotalInfo={true}
+                />
             </div>
             <style jsx>{`
                 .active-filter {
