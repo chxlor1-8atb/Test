@@ -1,80 +1,98 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
-import Loading from '@/components/Loading';
+import { useState, useEffect, useCallback } from 'react';
+import { usePagination } from '@/hooks';
+import { API_ENDPOINTS } from '@/constants';
+import { showSuccess, showError, confirmDelete } from '@/utils/alerts';
+
+// UI Components
 import Pagination from '@/components/ui/Pagination';
 import EditableCell from '@/components/ui/EditableCell';
+import Modal from '@/components/ui/Modal';
+import FilterRow, { SearchInput } from '@/components/ui/FilterRow';
+import TableSkeleton from '@/components/ui/TableSkeleton';
 
+// Initial form state
+const INITIAL_FORM_DATA = {
+    id: '',
+    shop_name: '',
+    owner_name: '',
+    address: '',
+    phone: '',
+    email: '',
+    notes: ''
+};
+
+/**
+ * ShopsPage Component
+ * Manages shop listing with CRUD operations
+ */
 export default function ShopsPage() {
+    const pagination = usePagination(20);
+
+    // Local state
     const [shops, setShops] = useState([]);
-    const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-
-    // Modal State (only for adding new)
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({
-        id: '',
-        shop_name: '',
-        owner_name: '',
-        address: '',
-        phone: '',
-        email: '',
-        notes: ''
-    });
+    const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
+    // Fetch shops when dependencies change
     useEffect(() => {
-        loadShops();
-    }, [pagination.page, search]);
+        fetchShops();
+    }, [pagination.page, pagination.limit, search]);
 
-    const loadShops = async () => {
+    /**
+     * Fetches shops from API
+     */
+    const fetchShops = useCallback(async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams({
                 page: pagination.page,
                 limit: pagination.limit,
-                search: search
+                search
             });
-            const res = await fetch(`/api/shops?${params}`);
-            const data = await res.json();
+
+            const response = await fetch(`${API_ENDPOINTS.SHOPS}?${params}`);
+            const data = await response.json();
 
             if (data.success) {
                 setShops(data.shops);
-                setPagination(prev => ({ ...prev, ...data.pagination }));
-
-                if (data.pagination.page > data.pagination.totalPages && data.pagination.totalPages > 0) {
-                    setPagination(prev => ({ ...prev, page: data.pagination.totalPages }));
-                }
+                pagination.updateFromResponse(data.pagination);
             }
         } catch (error) {
-            console.error(error);
+            console.error('Failed to fetch shops:', error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [pagination.page, pagination.limit, search]);
 
-    // Inline update function
+    /**
+     * Handles inline field updates
+     */
     const handleInlineUpdate = async (shopId, field, value) => {
-        try {
-            const shop = shops.find(s => s.id === shopId);
-            const updateData = {
-                id: shopId,
-                shop_name: shop.shop_name,
-                owner_name: shop.owner_name || '',
-                address: shop.address || '',
-                phone: shop.phone || '',
-                email: shop.email || '',
-                notes: shop.notes || '',
-                [field]: value
-            };
+        const shop = shops.find(s => s.id === shopId);
+        if (!shop) return;
 
-            const res = await fetch('/api/shops', {
+        const updateData = {
+            id: shopId,
+            shop_name: shop.shop_name,
+            owner_name: shop.owner_name || '',
+            address: shop.address || '',
+            phone: shop.phone || '',
+            email: shop.email || '',
+            notes: shop.notes || '',
+            [field]: value
+        };
+
+        try {
+            const response = await fetch(API_ENDPOINTS.SHOPS, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
             });
-            const data = await res.json();
+            const data = await response.json();
 
             if (data.success) {
                 setShops(prev => prev.map(s =>
@@ -84,94 +102,84 @@ export default function ShopsPage() {
                 throw new Error(data.message);
             }
         } catch (error) {
-            Swal.fire('Error', error.message, 'error');
+            showError(error.message);
             throw error;
         }
     };
 
-    const handleSearch = (e) => {
-        setSearch(e.target.value);
-        setPagination(prev => ({ ...prev, page: 1 }));
-    };
-
+    /**
+     * Handles shop deletion
+     */
     const handleDelete = async (id) => {
-        const result = await Swal.fire({
-            title: 'ยืนยันการลบ?',
-            text: "ข้อมูลร้านค้าจะถูกลบถาวร",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ลบข้อมูล',
-            cancelButtonText: 'ยกเลิก'
-        });
+        const confirmed = await confirmDelete('ข้อมูลร้านค้า');
+        if (!confirmed) return;
 
-        if (result.isConfirmed) {
-            try {
-                const res = await fetch(`/api/shops?id=${id}`, { method: 'DELETE' });
-                const data = await res.json();
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'ลบสำเร็จ',
-                        text: data.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                    loadShops();
-                } else {
-                    Swal.fire('เกิดข้อผิดพลาด', data.message, 'error');
-                }
-            } catch (error) {
-                Swal.fire('Error', error.message, 'error');
+        try {
+            const response = await fetch(`${API_ENDPOINTS.SHOPS}?id=${id}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                showSuccess(data.message);
+                fetchShops();
+            } else {
+                showError(data.message);
             }
+        } catch (error) {
+            showError(error.message);
         }
     };
 
+    /**
+     * Opens modal for adding new shop
+     */
     const openModal = () => {
-        setFormData({
-            id: '',
-            shop_name: '',
-            owner_name: '',
-            address: '',
-            phone: '',
-            email: '',
-            notes: ''
-        });
+        setFormData(INITIAL_FORM_DATA);
         setShowModal(true);
     };
 
+    /**
+     * Handles form submission
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch('/api/shops', {
+            const response = await fetch(API_ENDPOINTS.SHOPS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
-            const data = await res.json();
+            const data = await response.json();
 
             if (data.success) {
                 setShowModal(false);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'บันทึกสำเร็จ',
-                    text: data.message,
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                loadShops();
+                showSuccess(data.message);
+                fetchShops();
             } else {
-                Swal.fire('Error', data.message, 'error');
+                showError(data.message);
             }
         } catch (error) {
-            Swal.fire('Error', error.message, 'error');
+            showError(error.message);
         }
     };
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    /**
+     * Handles search with page reset
+     */
+    const handleSearch = (value) => {
+        setSearch(value);
+        pagination.resetPage();
     };
+
+    // Skeleton columns definition
+    const skeletonColumns = [
+        { width: '30%' },
+        { width: '25%' },
+        { width: '20%' },
+        { width: '15%', center: true },
+        { width: '10%', center: true }
+    ];
 
     return (
         <>
@@ -184,15 +192,15 @@ export default function ShopsPage() {
                         <i className="fas fa-plus"></i> เพิ่มร้านค้า
                     </button>
                 </div>
+
                 <div className="card-body">
-                    <div className="filter-row" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem', alignItems: 'center' }}>
-                        <input
-                            type="text"
-                            placeholder="ค้นหาร้านค้า..."
+                    <FilterRow>
+                        <SearchInput
                             value={search}
                             onChange={handleSearch}
+                            placeholder="ค้นหาร้านค้า..."
                         />
-                    </div>
+                    </FilterRow>
 
                     <div className="table-container">
                         <table className="data-table">
@@ -207,153 +215,179 @@ export default function ShopsPage() {
                             </thead>
                             <tbody>
                                 {loading ? (
-                                    [...Array(5)].map((_, i) => (
-                                        <tr key={`skeleton-${i}`}>
-                                            <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '80%' }}></div></td>
-                                            <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '70%' }}></div></td>
-                                            <td><div className="skeleton-cell skeleton-animate" style={{ height: '1rem', width: '60%' }}></div></td>
-                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '1.5rem', width: '2rem', margin: '0 auto', borderRadius: '0.25rem' }}></div></td>
-                                            <td className="text-center"><div className="skeleton-cell skeleton-animate" style={{ height: '2rem', width: '2rem', margin: '0 auto', borderRadius: '0.5rem' }}></div></td>
-                                        </tr>
-                                    ))
+                                    <TableSkeleton rows={5} columns={skeletonColumns} />
                                 ) : shops.length === 0 ? (
-                                    <tr><td colSpan="5" className="text-center">ไม่พบข้อมูล</td></tr>
+                                    <tr>
+                                        <td colSpan="5" className="text-center">ไม่พบข้อมูล</td>
+                                    </tr>
                                 ) : (
                                     shops.map(shop => (
-                                        <tr key={shop.id}>
-                                            <td>
-                                                <EditableCell
-                                                    value={shop.shop_name}
-                                                    type="text"
-                                                    onSave={(value) => handleInlineUpdate(shop.id, 'shop_name', value)}
-                                                />
-                                            </td>
-                                            <td>
-                                                <EditableCell
-                                                    value={shop.owner_name || ''}
-                                                    displayValue={shop.owner_name || '-'}
-                                                    type="text"
-                                                    placeholder="ชื่อเจ้าของ"
-                                                    onSave={(value) => handleInlineUpdate(shop.id, 'owner_name', value)}
-                                                />
-                                            </td>
-                                            <td>
-                                                <EditableCell
-                                                    value={shop.phone || ''}
-                                                    displayValue={shop.phone || '-'}
-                                                    type="text"
-                                                    placeholder="เบอร์โทร"
-                                                    onSave={(value) => handleInlineUpdate(shop.id, 'phone', value)}
-                                                />
-                                            </td>
-                                            <td className="text-center">
-                                                <span className="badge badge-active">{shop.license_count}</span>
-                                            </td>
-                                            <td className="text-center">
-                                                <button className="btn btn-danger btn-icon" onClick={() => handleDelete(shop.id)}>
-                                                    <i className="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
+                                        <ShopRow
+                                            key={shop.id}
+                                            shop={shop}
+                                            onUpdate={handleInlineUpdate}
+                                            onDelete={handleDelete}
+                                        />
                                     ))
                                 )}
                             </tbody>
                         </table>
                     </div>
 
-                    {/* Modern Pagination */}
                     <Pagination
                         currentPage={pagination.page}
                         totalPages={pagination.totalPages}
                         totalItems={pagination.total}
                         itemsPerPage={pagination.limit}
-                        onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
-                        onItemsPerPageChange={(limit) => setPagination(prev => ({ ...prev, limit, page: 1 }))}
-                        showItemsPerPage={true}
-                        showPageJump={true}
-                        showTotalInfo={true}
+                        onPageChange={pagination.setPage}
+                        onItemsPerPageChange={pagination.setLimit}
+                        showItemsPerPage
+                        showPageJump
+                        showTotalInfo
                     />
                 </div>
             </div>
 
-            {/* Modal - Only for Adding New */}
-            {showModal && (
-                <div className="modal-overlay show" style={{ display: 'flex' }} onClick={(e) => {
-                    if (e.target === e.currentTarget) setShowModal(false);
-                }}>
-                    <div className="modal show" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3 className="modal-title">เพิ่มร้านค้าใหม่</h3>
-                            <button className="modal-close" onClick={() => setShowModal(false)}>
-                                <i className="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <form id="shopForm" onSubmit={handleSubmit}>
-                                <div className="form-group">
-                                    <label>ชื่อร้านค้า *</label>
-                                    <input
-                                        type="text"
-                                        name="shop_name"
-                                        value={formData.shop_name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>ชื่อเจ้าของ</label>
-                                    <input
-                                        type="text"
-                                        name="owner_name"
-                                        value={formData.owner_name}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>ที่อยู่</label>
-                                    <textarea
-                                        name="address"
-                                        rows="2"
-                                        value={formData.address}
-                                        onChange={handleChange}
-                                    ></textarea>
-                                </div>
-                                <div className="form-group">
-                                    <label>โทรศัพท์</label>
-                                    <input
-                                        type="text"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>อีเมล</label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>หมายเหตุ</label>
-                                    <textarea
-                                        name="notes"
-                                        rows="2"
-                                        value={formData.notes}
-                                        onChange={handleChange}
-                                    ></textarea>
-                                </div>
-                                <div className="modal-footer" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>ยกเลิก</button>
-                                    <button type="submit" className="btn btn-primary">บันทึก</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title="เพิ่มร้านค้าใหม่"
+            >
+                <ShopForm
+                    formData={formData}
+                    onChange={setFormData}
+                    onSubmit={handleSubmit}
+                    onCancel={() => setShowModal(false)}
+                />
+            </Modal>
         </>
+    );
+}
+
+/**
+ * ShopRow Component - Single table row
+ */
+function ShopRow({ shop, onUpdate, onDelete }) {
+    return (
+        <tr>
+            <td>
+                <EditableCell
+                    value={shop.shop_name}
+                    type="text"
+                    onSave={(value) => onUpdate(shop.id, 'shop_name', value)}
+                />
+            </td>
+            <td>
+                <EditableCell
+                    value={shop.owner_name || ''}
+                    displayValue={shop.owner_name || '-'}
+                    type="text"
+                    placeholder="ชื่อเจ้าของ"
+                    onSave={(value) => onUpdate(shop.id, 'owner_name', value)}
+                />
+            </td>
+            <td>
+                <EditableCell
+                    value={shop.phone || ''}
+                    displayValue={shop.phone || '-'}
+                    type="text"
+                    placeholder="เบอร์โทร"
+                    onSave={(value) => onUpdate(shop.id, 'phone', value)}
+                />
+            </td>
+            <td className="text-center">
+                <span className="badge badge-active">{shop.license_count}</span>
+            </td>
+            <td className="text-center">
+                <button
+                    className="btn btn-danger btn-icon"
+                    onClick={() => onDelete(shop.id)}
+                >
+                    <i className="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    );
+}
+
+/**
+ * ShopForm Component - Form for creating shops
+ */
+function ShopForm({ formData, onChange, onSubmit, onCancel }) {
+    const handleChange = (e) => {
+        onChange({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    return (
+        <form onSubmit={onSubmit}>
+            <div className="form-group">
+                <label>ชื่อร้านค้า *</label>
+                <input
+                    type="text"
+                    name="shop_name"
+                    value={formData.shop_name}
+                    onChange={handleChange}
+                    required
+                />
+            </div>
+            <div className="form-group">
+                <label>ชื่อเจ้าของ</label>
+                <input
+                    type="text"
+                    name="owner_name"
+                    value={formData.owner_name}
+                    onChange={handleChange}
+                />
+            </div>
+            <div className="form-group">
+                <label>ที่อยู่</label>
+                <textarea
+                    name="address"
+                    rows="2"
+                    value={formData.address}
+                    onChange={handleChange}
+                />
+            </div>
+            <div className="form-group">
+                <label>โทรศัพท์</label>
+                <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                />
+            </div>
+            <div className="form-group">
+                <label>อีเมล</label>
+                <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                />
+            </div>
+            <div className="form-group">
+                <label>หมายเหตุ</label>
+                <textarea
+                    name="notes"
+                    rows="2"
+                    value={formData.notes}
+                    onChange={handleChange}
+                />
+            </div>
+            <div className="modal-footer" style={{
+                marginTop: '1.5rem',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.5rem'
+            }}>
+                <button type="button" className="btn btn-secondary" onClick={onCancel}>
+                    ยกเลิก
+                </button>
+                <button type="submit" className="btn btn-primary">
+                    บันทึก
+                </button>
+            </div>
+        </form>
     );
 }

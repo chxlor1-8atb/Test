@@ -1,148 +1,146 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import CustomSelect from '@/components/ui/CustomSelect';
-import Loading from '@/components/Loading';
-import Pagination from '@/components/ui/Pagination';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { API_ENDPOINTS } from '@/constants';
+import { formatThaiDate } from '@/utils/formatters';
 
+// UI Components
+import CustomSelect from '@/components/ui/CustomSelect';
+import Pagination from '@/components/ui/Pagination';
+import FilterRow, { SearchInput } from '@/components/ui/FilterRow';
+import TableSkeleton from '@/components/ui/TableSkeleton';
+
+// Constants - Expiry thresholds
+const EXPIRY_THRESHOLDS = {
+    EXPIRED: 0,
+    CRITICAL: 7,
+    WARNING: 14
+};
+
+const EXPIRY_STATUS_FILTERS = [
+    { value: 'expired', label: 'หมดอายุแล้ว', icon: 'fas fa-times-circle', badgeClass: 'badge-expired' },
+    { value: 'critical', label: '≤ 7 วัน', icon: 'fas fa-exclamation-triangle', badgeClass: 'badge-critical' },
+    { value: 'warning', label: '8-14 วัน', icon: 'fas fa-exclamation-circle', badgeClass: 'badge-warning' },
+    { value: 'info', label: '> 14 วัน', icon: 'fas fa-clock', badgeClass: 'badge-info' }
+];
+
+/**
+ * ExpiringPage Component
+ * Displays licenses that are expiring soon or already expired
+ */
 export default function ExpiringPage() {
     const [allLicenses, setAllLicenses] = useState([]);
-    const [filteredLicenses, setFilteredLicenses] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Filters
     const [search, setSearch] = useState('');
     const [filterType, setFilterType] = useState('');
-    const [statusFilter, setStatusFilter] = useState(''); // 'expired', 'critical', 'warning', 'info'
-    const [typesList, setTypesList] = useState([]);
-
-    // Pagination
+    const [statusFilter, setStatusFilter] = useState('');
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(20);
 
     useEffect(() => {
-        loadData();
+        fetchData();
     }, []);
 
-    useEffect(() => {
-        applyFilters();
-    }, [allLicenses, search, filterType, statusFilter]);
-
-    const loadData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/licenses/expiring');
-            const data = await res.json();
+            const response = await fetch('/api/licenses/expiring');
+            const data = await response.json();
 
             if (data.success) {
                 setAllLicenses(data.licenses || []);
-                // Extract unique types for filter
-                const types = [...new Set(data.licenses.map(l => l.type_name).filter(Boolean))];
-                setTypesList(types);
             }
         } catch (error) {
-            console.error(error);
+            console.error('Failed to fetch expiring licenses:', error);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const applyFilters = () => {
+    // Extract unique types for filter dropdown
+    const typesList = useMemo(() => {
+        return [...new Set(allLicenses.map(l => l.type_name).filter(Boolean))];
+    }, [allLicenses]);
+
+    // Apply filters using useMemo for performance
+    const filteredLicenses = useMemo(() => {
         let result = allLicenses;
 
-        // Search
+        // Search filter
         if (search) {
             const lowerSearch = search.toLowerCase();
             result = result.filter(l =>
-                (l.shop_name && l.shop_name.toLowerCase().includes(lowerSearch)) ||
-                (l.shop_code && l.shop_code.toLowerCase().includes(lowerSearch)) ||
-                (l.license_number && l.license_number.toLowerCase().includes(lowerSearch))
+                (l.shop_name?.toLowerCase().includes(lowerSearch)) ||
+                (l.shop_code?.toLowerCase().includes(lowerSearch)) ||
+                (l.license_number?.toLowerCase().includes(lowerSearch))
             );
         }
 
-        // Type Filter
+        // Type filter
         if (filterType) {
             result = result.filter(l => l.type_name === filterType);
         }
 
-        // Status Badge Filter
+        // Status filter
         if (statusFilter) {
             result = result.filter(l => {
                 const days = parseInt(l.days_until_expiry);
-                if (statusFilter === 'expired') return days < 0;
-                if (statusFilter === 'critical') return days >= 0 && days <= 7;
-                if (statusFilter === 'warning') return days > 7 && days <= 14;
-                if (statusFilter === 'info') return days > 14;
-                return true;
+                switch (statusFilter) {
+                    case 'expired': return days < 0;
+                    case 'critical': return days >= 0 && days <= EXPIRY_THRESHOLDS.CRITICAL;
+                    case 'warning': return days > EXPIRY_THRESHOLDS.CRITICAL && days <= EXPIRY_THRESHOLDS.WARNING;
+                    case 'info': return days > EXPIRY_THRESHOLDS.WARNING;
+                    default: return true;
+                }
             });
         }
 
-        setFilteredLicenses(result);
-        setPage(1); // Reset to page 1 on filter change
-    };
+        return result;
+    }, [allLicenses, search, filterType, statusFilter]);
 
-    // Pagination Logic
+    // Pagination
     const totalPages = Math.ceil(filteredLicenses.length / limit);
-    const currentData = filteredLicenses.slice((page - 1) * limit, page * limit);
+    const currentData = useMemo(() => {
+        return filteredLicenses.slice((page - 1) * limit, page * limit);
+    }, [filteredLicenses, page, limit]);
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleDateString('th-TH', {
-            year: 'numeric', month: 'short', day: 'numeric'
-        });
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [search, filterType, statusFilter]);
+
+    const handleStatusFilterToggle = (status) => {
+        setStatusFilter(prev => prev === status ? '' : status);
     };
+
+    const skeletonColumns = [
+        { width: '10%' },
+        { width: '20%' },
+        { width: '15%' },
+        { width: '15%' },
+        { width: '15%', center: true },
+        { width: '20%', center: true }
+    ];
 
     return (
         <div className="card">
             <div className="card-header">
-                <h3 className="card-title"><i className="fas fa-bell"></i> ใบอนุญาตใกล้หมดอายุ</h3>
-                <div className="filter-badges" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <span
-                        className={`badge badge-expired filter-badge ${statusFilter === 'expired' ? 'active-filter' : ''}`}
-                        style={{ cursor: 'pointer', opacity: statusFilter && statusFilter !== 'expired' ? 0.5 : 1 }}
-                        onClick={() => setStatusFilter(statusFilter === 'expired' ? '' : 'expired')}
-                    >
-                        <i className="fas fa-times-circle"></i> หมดอายุแล้ว
-                    </span>
-                    <span
-                        className={`badge badge-critical filter-badge ${statusFilter === 'critical' ? 'active-filter' : ''}`}
-                        style={{ cursor: 'pointer', opacity: statusFilter && statusFilter !== 'critical' ? 0.5 : 1 }}
-                        onClick={() => setStatusFilter(statusFilter === 'critical' ? '' : 'critical')}
-                    >
-                        <i className="fas fa-exclamation-triangle"></i> ≤ 7 วัน
-                    </span>
-                    <span
-                        className={`badge badge-warning filter-badge ${statusFilter === 'warning' ? 'active-filter' : ''}`}
-                        style={{ cursor: 'pointer', opacity: statusFilter && statusFilter !== 'warning' ? 0.5 : 1 }}
-                        onClick={() => setStatusFilter(statusFilter === 'warning' ? '' : 'warning')}
-                    >
-                        <i className="fas fa-exclamation-circle"></i> 8-14 วัน
-                    </span>
-                    <span
-                        className={`badge badge-info filter-badge ${statusFilter === 'info' ? 'active-filter' : ''}`}
-                        style={{ cursor: 'pointer', opacity: statusFilter && statusFilter !== 'info' ? 0.5 : 1 }}
-                        onClick={() => setStatusFilter(statusFilter === 'info' ? '' : 'info')}
-                    >
-                        <i className="fas fa-clock"></i> &gt; 14 วัน
-                    </span>
-                    {statusFilter && (
-                        <span
-                            className="badge badge-secondary filter-badge"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => setStatusFilter('')}
-                        >
-                            <i className="fas fa-times"></i> ล้างตัวกรอง
-                        </span>
-                    )}
-                </div>
+                <h3 className="card-title">
+                    <i className="fas fa-bell"></i> ใบอนุญาตใกล้หมดอายุ
+                </h3>
+                <StatusFilterBadges
+                    currentFilter={statusFilter}
+                    onToggle={handleStatusFilterToggle}
+                    onClear={() => setStatusFilter('')}
+                />
             </div>
+
             <div className="card-body">
-                <div className="filter-row" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem', alignItems: 'center' }}>
-                    <input
-                        type="text"
-                        placeholder="ค้นหาร้านค้า..."
+                <FilterRow>
+                    <SearchInput
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={setSearch}
+                        placeholder="ค้นหาร้านค้า..."
                     />
                     <CustomSelect
                         value={filterType}
@@ -154,7 +152,7 @@ export default function ExpiringPage() {
                         placeholder="ทุกประเภท"
                         style={{ minWidth: '200px', width: 'auto' }}
                     />
-                </div>
+                </FilterRow>
 
                 <div className="table-container">
                     <table className="data-table">
@@ -170,69 +168,33 @@ export default function ExpiringPage() {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="6" className="text-center">กำลังโหลด...</td></tr>
+                                <TableSkeleton rows={5} columns={skeletonColumns} />
                             ) : currentData.length === 0 ? (
-                                <tr><td colSpan="6" className="text-center">ไม่พบข้อมูล</td></tr>
+                                <tr>
+                                    <td colSpan="6" className="text-center">ไม่พบข้อมูล</td>
+                                </tr>
                             ) : (
-                                currentData.map(l => {
-                                    const daysLeft = parseInt(l.days_until_expiry);
-                                    let badgeClass, badgeIcon, daysText;
-
-                                    if (daysLeft < 0) {
-                                        badgeClass = 'badge-expired';
-                                        badgeIcon = 'fas fa-times-circle';
-                                        daysText = `หมดอายุแล้ว ${Math.abs(daysLeft)} วัน`;
-                                    } else if (daysLeft === 0) {
-                                        badgeClass = 'badge-expired';
-                                        badgeIcon = 'fas fa-exclamation-triangle';
-                                        daysText = 'หมดอายุวันนี้';
-                                    } else if (daysLeft <= 7) {
-                                        badgeClass = 'badge-critical';
-                                        badgeIcon = 'fas fa-exclamation-triangle';
-                                        daysText = `เหลือ ${daysLeft} วัน`;
-                                    } else if (daysLeft <= 14) {
-                                        badgeClass = 'badge-warning';
-                                        badgeIcon = 'fas fa-exclamation-circle';
-                                        daysText = `เหลือ ${daysLeft} วัน`;
-                                    } else {
-                                        badgeClass = 'badge-info';
-                                        badgeIcon = 'fas fa-clock';
-                                        daysText = `เหลือ ${daysLeft} วัน`;
-                                    }
-
-                                    return (
-                                        <tr key={l.id}>
-                                            <td><strong>{l.shop_code || '-'}</strong></td>
-                                            <td>{l.shop_name}</td>
-                                            <td>{l.type_name}</td>
-                                            <td>{l.license_number}</td>
-                                            <td className="text-center">{formatDate(l.expiry_date)}</td>
-                                            <td className="text-center">
-                                                <span className={`badge ${badgeClass}`}>
-                                                    <i className={badgeIcon}></i> {daysText}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
+                                currentData.map(license => (
+                                    <ExpiringLicenseRow key={license.id} license={license} />
+                                ))
                             )}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Modern Pagination */}
                 <Pagination
                     currentPage={page}
                     totalPages={totalPages}
                     totalItems={filteredLicenses.length}
                     itemsPerPage={limit}
-                    onPageChange={(p) => setPage(p)}
+                    onPageChange={setPage}
                     onItemsPerPageChange={(l) => { setLimit(l); setPage(1); }}
-                    showItemsPerPage={true}
-                    showPageJump={true}
-                    showTotalInfo={true}
+                    showItemsPerPage
+                    showPageJump
+                    showTotalInfo
                 />
             </div>
+
             <style jsx>{`
                 .active-filter {
                     outline: 2px solid #fff;
@@ -241,4 +203,98 @@ export default function ExpiringPage() {
             `}</style>
         </div>
     );
+}
+
+/**
+ * StatusFilterBadges Component
+ */
+function StatusFilterBadges({ currentFilter, onToggle, onClear }) {
+    return (
+        <div className="filter-badges" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {EXPIRY_STATUS_FILTERS.map(filter => (
+                <span
+                    key={filter.value}
+                    className={`badge ${filter.badgeClass} filter-badge ${currentFilter === filter.value ? 'active-filter' : ''}`}
+                    style={{
+                        cursor: 'pointer',
+                        opacity: currentFilter && currentFilter !== filter.value ? 0.5 : 1
+                    }}
+                    onClick={() => onToggle(filter.value)}
+                >
+                    <i className={filter.icon}></i> {filter.label}
+                </span>
+            ))}
+            {currentFilter && (
+                <span
+                    className="badge badge-secondary filter-badge"
+                    style={{ cursor: 'pointer' }}
+                    onClick={onClear}
+                >
+                    <i className="fas fa-times"></i> ล้างตัวกรอง
+                </span>
+            )}
+        </div>
+    );
+}
+
+/**
+ * ExpiringLicenseRow Component
+ */
+function ExpiringLicenseRow({ license }) {
+    const daysLeft = parseInt(license.days_until_expiry);
+    const expiryStatus = getExpiryStatus(daysLeft);
+
+    return (
+        <tr>
+            <td><strong>{license.shop_code || '-'}</strong></td>
+            <td>{license.shop_name}</td>
+            <td>{license.type_name}</td>
+            <td>{license.license_number}</td>
+            <td className="text-center">{formatThaiDate(license.expiry_date)}</td>
+            <td className="text-center">
+                <span className={`badge ${expiryStatus.badgeClass}`}>
+                    <i className={expiryStatus.icon}></i> {expiryStatus.text}
+                </span>
+            </td>
+        </tr>
+    );
+}
+
+/**
+ * Helper function to determine expiry status
+ */
+function getExpiryStatus(daysLeft) {
+    if (daysLeft < 0) {
+        return {
+            badgeClass: 'badge-expired',
+            icon: 'fas fa-times-circle',
+            text: `หมดอายุแล้ว ${Math.abs(daysLeft)} วัน`
+        };
+    }
+    if (daysLeft === 0) {
+        return {
+            badgeClass: 'badge-expired',
+            icon: 'fas fa-exclamation-triangle',
+            text: 'หมดอายุวันนี้'
+        };
+    }
+    if (daysLeft <= EXPIRY_THRESHOLDS.CRITICAL) {
+        return {
+            badgeClass: 'badge-critical',
+            icon: 'fas fa-exclamation-triangle',
+            text: `เหลือ ${daysLeft} วัน`
+        };
+    }
+    if (daysLeft <= EXPIRY_THRESHOLDS.WARNING) {
+        return {
+            badgeClass: 'badge-warning',
+            icon: 'fas fa-exclamation-circle',
+            text: `เหลือ ${daysLeft} วัน`
+        };
+    }
+    return {
+        badgeClass: 'badge-info',
+        icon: 'fas fa-clock',
+        text: `เหลือ ${daysLeft} วัน`
+    };
 }
