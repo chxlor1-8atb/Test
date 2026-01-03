@@ -23,8 +23,7 @@ export default function DashboardPage() {
             try { return await res.json(); } catch (e) { return null; }
         };
         try {
-            const [statsRes, breakdownRes] = await Promise.all([
-                fetch('/api/dashboard?action=stats'),
+            const [statsRes, breakdownRes, recentRes] = await Promise.all([
                 fetch('/api/dashboard?action=stats'),
                 fetch('/api/dashboard?action=license_breakdown'),
                 fetch('/api/dashboard?action=recent_activity')
@@ -40,9 +39,6 @@ export default function DashboardPage() {
             }
             if (breakdownData.success || breakdownData.breakdown) {
                 setBreakdown(breakdownData.breakdown || []);
-            }
-            if (activityData && activityData.success) {
-                setRecentActivity(activityData.activities || []);
             }
             if (activityData && activityData.success) {
                 setRecentActivity(activityData.activities || []);
