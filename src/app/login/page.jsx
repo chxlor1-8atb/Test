@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import '../../styles/login-base.css';
 import '../../styles/login-responsive.css';
 import '../../styles/login-slide.css';
@@ -177,7 +178,7 @@ export default function LoginPage() {
             </div>
 
             <div className="particles">
-                {[...Array(15)].map((_, i) => (
+                {[...Array(6)].map((_, i) => (
                     <div key={i} className="particle"></div>
                 ))}
             </div>
@@ -189,7 +190,14 @@ export default function LoginPage() {
                         <div className="card-left__content">
                             <div className="brand">
                                 <div className="brand__logo">
-                                    <img src="/image/shop-logo.png" alt="Shop License" className="brand__logo-img" />
+                                    <Image
+                                        src="/image/shop-logo.png"
+                                        alt="Shop License"
+                                        width={52}
+                                        height={52}
+                                        className="brand__logo-img"
+                                        priority
+                                    />
                                 </div>
                                 <span className="brand__name">Shop License</span>
                             </div>
@@ -330,7 +338,13 @@ export default function LoginPage() {
                 <div className="page-transition__bg"></div>
                 <div className="page-transition__content">
                     <div className="page-transition__logo">
-                        <img src="/image/shop-logo.png" alt="Shop License" />
+                        <Image
+                            src="/image/shop-logo.png"
+                            alt="Shop License"
+                            width={80}
+                            height={80}
+                            priority
+                        />
                     </div>
                     <div className="page-transition__spinner"></div>
                     <div className="page-transition__success">

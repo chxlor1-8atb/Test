@@ -1,11 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
+import { useState, useEffect, lazy, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import Loading, { CardSkeleton } from '@/components/Loading';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+// Lazy load Chart.js components to reduce initial bundle
+const ChartComponents = dynamic(
+    () => import('@/components/DashboardCharts'),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="chart-placeholder" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="loading-spinner" style={{ width: '40px', height: '40px' }}>
+                    <div className="spinner-ring"></div>
+                </div>
+            </div>
+        )
+    }
+);
 
 export default function DashboardPage() {
     const [stats, setStats] = useState(null);
@@ -50,43 +62,43 @@ export default function DashboardPage() {
         }
     };
 
-    if (loading) return <Loading message="กำลังโหลดข้อมูลแดชบอร์ด..." />;
+    // Skeleton loading state - maintains layout
+    if (loading) {
+        return (
+            <div>
+                {/* Stats Grid Skeleton */}
+                <div className="stats-grid" style={{ minHeight: '120px' }}>
+                    {[...Array(5)].map((_, i) => (
+                        <div key={i} className="stat-card" style={{ opacity: 0.7 }}>
+                            <div className="skeleton-cell skeleton-animate" style={{ width: '56px', height: '56px', borderRadius: '12px' }}></div>
+                            <div className="stat-content" style={{ gap: '0.5rem' }}>
+                                <div className="skeleton-cell skeleton-animate" style={{ width: '60%', height: '28px' }}></div>
+                                <div className="skeleton-cell skeleton-animate" style={{ width: '80%', height: '16px' }}></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Chart Skeleton */}
+                <div className="card chart-card" style={{ marginTop: '1.5rem', minHeight: '350px' }}>
+                    <div className="card-header">
+                        <div className="skeleton-cell skeleton-animate" style={{ width: '200px', height: '24px' }}></div>
+                    </div>
+                    <div className="card-body" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div className="loading-spinner">
+                            <div className="spinner-ring"></div>
+                            <div className="spinner-ring"></div>
+                            <div className="spinner-ring"></div>
+                            <div className="spinner-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (error) return <div className="error-message">{error}</div>;
     if (!stats) return null;
-
-    // Prepare Chart Data
-    const pieData = {
-        labels: breakdown.map(b => b.type_name),
-        datasets: [{
-            data: breakdown.map(b => parseInt(b.total_count)),
-            backgroundColor: [
-                'rgba(59, 130, 246, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)',
-                'rgba(239, 68, 68, 0.8)', 'rgba(139, 92, 246, 0.8)', 'rgba(236, 72, 153, 0.8)'
-            ],
-            borderWidth: 1,
-        }]
-    };
-
-    const barData = {
-        labels: breakdown.map(b => b.type_name),
-        datasets: [
-            {
-                label: 'ใช้งาน',
-                data: breakdown.map(b => parseInt(b.active_count)),
-                backgroundColor: 'rgba(16, 185, 129, 0.8)',
-            },
-            {
-                label: 'ใกล้หมดอายุ',
-                data: breakdown.map(b => parseInt(b.expiring_count)),
-                backgroundColor: 'rgba(245, 158, 11, 0.8)',
-            },
-            {
-                label: 'หมดอายุ',
-                data: breakdown.map(b => parseInt(b.expired_count)),
-                backgroundColor: 'rgba(239, 68, 68, 0.8)',
-            }
-        ]
-    };
 
     return (
         <div>
@@ -128,12 +140,8 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            <div className="card chart-card">
-                <div className="card-header"><h3 className="card-title"><i className="fas fa-chart-bar"></i> สถานะใบอนุญาตตามประเภท</h3></div>
-                <div className="card-body" style={{ height: '300px' }}>
-                    <Bar data={barData} options={{ responsive: true, maintainAspectRatio: false, scales: { x: { stacked: false }, y: { stacked: false } } }} />
-                </div>
-            </div>
+            {/* Lazy loaded charts */}
+            <ChartComponents breakdown={breakdown} />
 
             {/* Recent Activity Widget */}
             <div className="card chart-card" style={{ marginTop: '1.5rem' }}>
