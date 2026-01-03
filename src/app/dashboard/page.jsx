@@ -138,53 +138,52 @@ export default function DashboardPage() {
                     <Bar data={barData} options={{ responsive: true, maintainAspectRatio: false, scales: { x: { stacked: false }, y: { stacked: false } } }} />
                 </div>
             </div>
-        </div>
 
-            {/* Recent Activity Widget */ }
-    <div className="card chart-card" style={{ marginTop: '1.5rem' }}>
-        <div className="card-header">
-            <h3 className="card-title"><i className="fas fa-history"></i> ประวัติการใช้งานล่าสุด</h3>
-        </div>
-        <div className="card-body">
-            <div className="table-responsive">
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>เวลา</th>
-                            <th>ผู้ใช้งาน</th>
-                            <th>กิจกรรม</th>
-                            <th>รายละเอียด</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {recentActivity.length > 0 ? recentActivity.map((log) => (
-                            <tr key={log.id}>
-                                <td>{new Date(log.created_at).toLocaleString('th-TH')}</td>
-                                <td>
-                                    <div className="user-info-cell" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <div className="user-avatar-small" style={{ width: 24, height: 24, borderRadius: '50%', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>
-                                            {(log.user_name || 'S').charAt(0)}
-                                        </div>
-                                        {log.user_name}
-                                    </div>
-                                </td>
-                                <td>
-                                    <span className={`badge ${log.action === 'LOGIN' ? 'badge-success' : log.action === 'DELETE' ? 'badge-danger' : 'badge-info'}`}>
-                                        {log.action}
-                                    </span>
-                                </td>
-                                <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {log.entity_type} {log.entity_id ? `#${log.entity_id}` : ''}
-                                </td>
-                            </tr>
-                        )) : (
-                            <tr><td colSpan="4" className="text-center">ไม่มีข้อมูลกิจกรรมล่าสุด</td></tr>
-                        )}
-                    </tbody>
-                </table>
+            {/* Recent Activity Widget */}
+            <div className="card chart-card" style={{ marginTop: '1.5rem' }}>
+                <div className="card-header">
+                    <h3 className="card-title"><i className="fas fa-history"></i> ประวัติการใช้งานล่าสุด</h3>
+                </div>
+                <div className="card-body">
+                    <div className="table-responsive">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>เวลา</th>
+                                    <th>ผู้ใช้งาน</th>
+                                    <th>กิจกรรม</th>
+                                    <th>รายละเอียด</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recentActivity.length > 0 ? recentActivity.map((log) => (
+                                    <tr key={log.id}>
+                                        <td>{new Date(log.created_at).toLocaleString('th-TH')}</td>
+                                        <td>
+                                            <div className="user-info-cell" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <div className="user-avatar-small" style={{ width: 24, height: 24, borderRadius: '50%', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>
+                                                    {(log.user_name || 'S').charAt(0)}
+                                                </div>
+                                                {log.user_name}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span className={`badge ${log.action === 'LOGIN' ? 'badge-success' : log.action === 'DELETE' ? 'badge-danger' : 'badge-info'}`}>
+                                                {log.action}
+                                            </span>
+                                        </td>
+                                        <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {log.entity_type} {log.entity_id ? `#${log.entity_id}` : ''}
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr><td colSpan="4" className="text-center">ไม่มีข้อมูลกิจกรรมล่าสุด</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
     );
-}
 }
