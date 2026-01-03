@@ -15,13 +15,11 @@ export default function DashboardLayout({ children }) {
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState('');
     const [expiringCount, setExpiringCount] = useState(0);
-    const [dynamicEntities, setDynamicEntities] = useState([]);
 
     useEffect(() => {
         const init = async () => {
             await checkAuth();
             fetchExpiringCount();
-            fetchDynamicEntities();
         };
         init();
         updateDateTime();
@@ -41,17 +39,7 @@ export default function DashboardLayout({ children }) {
         }
     };
 
-    const fetchDynamicEntities = async () => {
-        try {
-            const res = await fetch('/api/entities');
-            const data = await res.json();
-            if (data.success) {
-                setDynamicEntities(data.entities || []);
-            }
-        } catch (error) {
-            console.error('Failed to fetch entities', error);
-        }
-    };
+
 
     const updateDateTime = () => {
         const d = new Date();
@@ -149,16 +137,7 @@ export default function DashboardLayout({ children }) {
                         <Link href="/dashboard/licenses" className={`nav-link ${isActive('/dashboard/licenses') ? 'active' : ''}`}>
                             <i className="fas fa-file-alt"></i><span>ใบอนุญาต (เดิม)</span>
                         </Link>
-                        {/* Dynamic Entities Loop */}
-                        {dynamicEntities.map(ent => (
-                            <Link
-                                key={ent.id}
-                                href={`/dashboard/data/${ent.slug}`}
-                                className={`nav-link ${pathname === `/dashboard/data/${ent.slug}` ? 'active' : ''}`}
-                            >
-                                <i className={`fas ${ent.icon}`}></i><span>{ent.label}</span>
-                            </Link>
-                        ))}
+
                     </div>
 
                     <div className="nav-section">
@@ -173,14 +152,8 @@ export default function DashboardLayout({ children }) {
                                 </Link>
                             </>
                         )}
-                        <Link href="/dashboard/notifications" className={`nav-link ${isActive('/dashboard/notifications') ? 'active' : ''}`}>
-                            <i className="fas fa-bell"></i><span>การแจ้งเตือน</span>
-                        </Link>
-                        {user.role === 'admin' && (
-                            <Link href="/dashboard/settings/entities" className={`nav-link ${isActive('/dashboard/settings/entities') ? 'active' : ''}`}>
-                                <i className="fas fa-database"></i><span>จัดการประเภทข้อมูล (Entity)</span>
-                            </Link>
-                        )}
+
+
                     </div>
 
                     <div className="nav-section">
