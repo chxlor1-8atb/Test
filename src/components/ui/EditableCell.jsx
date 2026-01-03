@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 /**
  * EditableCell - Inline editable table cell component
  * Supports: text, number, select, and date input types
+ * Features real-time animations and visual feedback
  */
 export default function EditableCell({
     value,
@@ -19,7 +20,10 @@ export default function EditableCell({
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(value);
     const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [saveError, setSaveError] = useState(false);
     const inputRef = useRef(null);
+    const cellRef = useRef(null);
 
     useEffect(() => {
         setEditValue(value);
@@ -33,6 +37,21 @@ export default function EditableCell({
             }
         }
     }, [isEditing, type]);
+
+    // Clear success/error animation after it plays
+    useEffect(() => {
+        if (saveSuccess) {
+            const timer = setTimeout(() => setSaveSuccess(false), 600);
+            return () => clearTimeout(timer);
+        }
+    }, [saveSuccess]);
+
+    useEffect(() => {
+        if (saveError) {
+            const timer = setTimeout(() => setSaveError(false), 500);
+            return () => clearTimeout(timer);
+        }
+    }, [saveError]);
 
     const handleClick = () => {
         if (!disabled && !isEditing) {
@@ -51,9 +70,11 @@ export default function EditableCell({
         try {
             await onSave(editValue);
             setIsEditing(false);
+            setSaveSuccess(true);
         } catch (error) {
             console.error('Save failed:', error);
             setEditValue(value); // Revert on error
+            setSaveError(true);
         } finally {
             setIsSaving(false);
         }
@@ -151,8 +172,17 @@ export default function EditableCell({
         return <span className={`editable-cell disabled ${className}`}>{display}</span>;
     }
 
+    const cellClasses = [
+        'editable-cell',
+        isEditing ? 'editing' : '',
+        isSaving ? 'saving' : '',
+        saveSuccess ? 'save-success' : '',
+        saveError ? 'error-shake' : '',
+        className
+    ].filter(Boolean).join(' ');
+
     return (
-        <div className={`editable-cell ${isEditing ? 'editing' : ''} ${isSaving ? 'saving' : ''} ${className}`}>
+        <div ref={cellRef} className={cellClasses}>
             {isEditing ? (
                 <div className="editable-cell-editor">
                     {renderInput()}

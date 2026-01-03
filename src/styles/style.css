@@ -4678,6 +4678,12 @@ div:where(.swal2-container) .swal2-close:hover {
     padding: 0.25rem 0.5rem;
     border-radius: var(--border-radius);
     font-variant-numeric: tabular-nums;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pagination-range:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(217, 119, 87, 0.2);
 }
 
 .pagination-separator {
@@ -4685,9 +4691,18 @@ div:where(.swal2-container) .swal2-close:hover {
 }
 
 .pagination-total {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
+    padding: 0.125rem 0.375rem;
+    background: rgba(45, 42, 36, 0.05);
+    border-radius: 6px;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pagination-total:hover {
+    transform: scale(1.05);
+    background: rgba(45, 42, 36, 0.08);
 }
 
 .pagination-label {
@@ -4948,12 +4963,87 @@ div:where(.swal2-container) .swal2-close:hover {
     cursor: not-allowed;
 }
 
-/* Items per page */
+/* Items per page - Beautiful Custom Design */
+.pagination-per-page {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.7) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(216, 211, 200, 0.5);
+    border-radius: var(--border-radius-lg);
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.pagination-per-page:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.9) 100%);
+    border-color: rgba(217, 119, 87, 0.35);
+    box-shadow: 0 4px 20px rgba(217, 119, 87, 0.12);
+    transform: translateY(-1px);
+}
+
+.pagination-per-page-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.pagination-per-page-suffix {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
 .pagination-per-page-select {
-    padding: 0.5rem 2rem 0.5rem 0.75rem !important;
-    font-size: 0.8125rem !important;
-    min-width: auto !important;
-    background-color: rgba(255, 255, 255, 0.7) !important;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding: 0.25rem 1.5rem 0.25rem 0.625rem !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: var(--primary) !important;
+    background-color: rgba(217, 119, 87, 0.08) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23D97757' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.375rem center !important;
+    background-size: 10px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+    min-width: 48px !important;
+    text-align: center;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    transition: all 0.2s ease;
+}
+
+.pagination-per-page-select:hover {
+    background-color: rgba(217, 119, 87, 0.15) !important;
+    transform: scale(1.05);
+}
+
+.pagination-per-page-select:focus {
+    outline: none !important;
+    background-color: rgba(217, 119, 87, 0.15) !important;
+    box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.2) !important;
+}
+
+.pagination-per-page-select option {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+    background: #fff !important;
+    color: var(--text-primary) !important;
+}
+
+.pagination-per-page-select option:checked {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
+    color: white !important;
 }
 
 /* Legacy pagination support (for existing pages) */
@@ -5409,5 +5499,511 @@ div:where(.swal2-container) .swal2-close:hover {
 
     .editable-cell-select {
         min-width: 150px;
+    }
+}
+
+/* ========================================
+   Real-time Feel Animations System
+   ======================================== */
+
+/* Table Row Enter/Exit Animations */
+.data-table tbody tr {
+    animation: tableRowEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.data-table tbody tr:nth-child(1) {
+    animation-delay: 0.02s;
+}
+
+.data-table tbody tr:nth-child(2) {
+    animation-delay: 0.04s;
+}
+
+.data-table tbody tr:nth-child(3) {
+    animation-delay: 0.06s;
+}
+
+.data-table tbody tr:nth-child(4) {
+    animation-delay: 0.08s;
+}
+
+.data-table tbody tr:nth-child(5) {
+    animation-delay: 0.1s;
+}
+
+.data-table tbody tr:nth-child(6) {
+    animation-delay: 0.12s;
+}
+
+.data-table tbody tr:nth-child(7) {
+    animation-delay: 0.14s;
+}
+
+.data-table tbody tr:nth-child(8) {
+    animation-delay: 0.16s;
+}
+
+.data-table tbody tr:nth-child(9) {
+    animation-delay: 0.18s;
+}
+
+.data-table tbody tr:nth-child(10) {
+    animation-delay: 0.2s;
+}
+
+@keyframes tableRowEnter {
+    0% {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Row Hover Effect - Lift and Glow */
+.data-table tbody tr:hover {
+    background: linear-gradient(90deg, rgba(217, 119, 87, 0.06) 0%, rgba(217, 119, 87, 0.02) 100%);
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 var(--primary);
+}
+
+/* Cell Update Flash Animation */
+.data-table td.updated {
+    animation: cellUpdate 1s ease-out;
+}
+
+@keyframes cellUpdate {
+    0% {
+        background: rgba(16, 185, 129, 0.3);
+        box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.2);
+    }
+
+    100% {
+        background: transparent;
+        box-shadow: none;
+    }
+}
+
+/* Skeleton Shimmer - Enhanced */
+.skeleton-cell {
+    background: linear-gradient(90deg,
+            rgba(216, 211, 200, 0.3) 0%,
+            rgba(216, 211, 200, 0.5) 50%,
+            rgba(216, 211, 200, 0.3) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 6px;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Page Transition Animation */
+.card {
+    animation: cardEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes cardEnter {
+    0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Stat Cards Cascade */
+.stat-card {
+    animation: statEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.stats-grid .stat-card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.stats-grid .stat-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.stats-grid .stat-card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.stats-grid .stat-card:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+.stats-grid .stat-card:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+@keyframes statEnter {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Stat Value Counter Animation */
+.stat-value {
+    animation: countUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes countUp {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Pagination Page Change Effect */
+.pagination-btn-page.active {
+    animation: pageActive 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pageActive {
+    0% {
+        transform: scale(0.8);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Badge Pulse on Update */
+.badge {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.badge.pulse {
+    animation: badgePulse 0.6s ease-out;
+}
+
+@keyframes badgePulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+        box-shadow: 0 0 20px currentColor;
+    }
+}
+
+/* Live Indicator Dot */
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: var(--border-radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--success);
+}
+
+.live-indicator::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+        transform: scale(1.1);
+    }
+}
+
+/* Button Click Ripple */
+.btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform 0.5s, opacity 0.5s;
+}
+
+.btn:active::after {
+    transform: scale(0, 0);
+    opacity: 0.3;
+    transition: 0s;
+}
+
+/* Modal Entrance */
+.modal-overlay.show .modal {
+    animation: modalEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalEnter {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Form Focus Glow */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    animation: inputFocus 0.3s ease-out;
+}
+
+@keyframes inputFocus {
+    0% {
+        box-shadow: 0 0 0 0 rgba(217, 119, 87, 0.4);
+    }
+
+    100% {
+        box-shadow: var(--shadow-glow), 0 4px 16px rgba(217, 119, 87, 0.1);
+    }
+}
+
+/* Notification/Toast Enter */
+.toast.show {
+    animation: toastEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes toastEnter {
+    0% {
+        transform: translateX(120%) scale(0.8);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Data Loading Spinner */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(217, 119, 87, 0.15);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Smooth Number Transition */
+.animated-number {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animated-number.updating {
+    transform: scale(0.8);
+    opacity: 0.5;
+}
+
+/* Hover Card Lift */
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Table Actions Fade */
+.action-buttons {
+    opacity: 0.7;
+    transition: all 0.25s ease;
+}
+
+.data-table tbody tr:hover .action-buttons {
+    opacity: 1;
+    transform: translateX(2px);
+}
+
+/* Filter Row Animation */
+.filter-row {
+    animation: filterEnter 0.4s ease-out;
+}
+
+@keyframes filterEnter {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Pagination Container Animation */
+.pagination-container {
+    animation: paginationEnter 0.5s ease-out 0.3s both;
+}
+
+@keyframes paginationEnter {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Success Save Flash */
+.save-success {
+    animation: saveFlash 0.6s ease-out;
+}
+
+@keyframes saveFlash {
+    0% {
+        background: rgba(16, 185, 129, 0.2);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3);
+    }
+
+    100% {
+        background: transparent;
+        box-shadow: none;
+    }
+}
+
+/* Error Shake */
+.error-shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-4px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(4px);
+    }
+}
+
+/* Smooth Content Transition */
+.table-container {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.table-container.loading {
+    opacity: 0.6;
+    transform: scale(0.99);
+    pointer-events: none;
+}
+
+/* Chart Animation */
+.chart-card {
+    animation: chartEnter 0.6s ease-out 0.2s both;
+}
+
+@keyframes chartEnter {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }

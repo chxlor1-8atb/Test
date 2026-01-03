@@ -108,9 +108,9 @@ export default function Pagination({
             {showTotalInfo && (
                 <div className="pagination-info">
                     <span className="pagination-info-text">
-                        <span className="pagination-range">{startItem}-{endItem}</span>
+                        <span className="pagination-range animated-number">{startItem}-{endItem}</span>
                         <span className="pagination-separator">จาก</span>
-                        <span className="pagination-total">{totalItems}</span>
+                        <span className="pagination-total animated-number">{totalItems}</span>
                         <span className="pagination-label">รายการ</span>
                     </span>
                 </div>
@@ -223,16 +223,19 @@ export default function Pagination({
 
                 {showItemsPerPage && onItemsPerPageChange && (
                     <div className="pagination-per-page">
+                        <span className="pagination-per-page-label">แสดง</span>
                         <select
                             value={itemsPerPage}
                             onChange={(e) => onItemsPerPageChange(parseInt(e.target.value, 10))}
                             className="pagination-per-page-select"
+                            aria-label="รายการต่อหน้า"
                         >
-                            <option value={10}>10 /หน้า</option>
-                            <option value={20}>20 /หน้า</option>
-                            <option value={50}>50 /หน้า</option>
-                            <option value={100}>100 /หน้า</option>
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
                         </select>
+                        <span className="pagination-per-page-suffix">รายการ</span>
                     </div>
                 )}
             </div>
