@@ -172,17 +172,29 @@ export default function DatePicker({
             {/* Calendar Dropdown */}
             {isOpen && (
                 <div className="datepicker-dropdown">
-                    {/* Header */}
-                    <div className="datepicker-header">
-                        <button type="button" className="datepicker-nav" onClick={prevMonth}>
-                            <i className="fas fa-chevron-left"></i>
-                        </button>
+                    {/* Top Display (Selected Date) */}
+                    <div className="datepicker-display-top">
+                        <span className="display-label">วันที่เลือก</span>
+                        <div className="display-date-text">
+                            {value ? formatDisplayDate(value) : (lang === 'th' ? 'เลือกวันที่' : 'Select Date')}
+                        </div>
+                    </div>
+
+                    <div className="datepicker-divider"></div>
+
+                    {/* Month Nav Header */}
+                    <div className="datepicker-calendar-header">
                         <span className="datepicker-title">
                             {MONTHS_TH[viewDate.getMonth()]} {viewDate.getFullYear() + 543}
                         </span>
-                        <button type="button" className="datepicker-nav" onClick={nextMonth}>
-                            <i className="fas fa-chevron-right"></i>
-                        </button>
+                        <div className="datepicker-nav-buttons">
+                            <button type="button" className="datepicker-nav" onClick={prevMonth}>
+                                <i className="fas fa-chevron-left"></i>
+                            </button>
+                            <button type="button" className="datepicker-nav" onClick={nextMonth}>
+                                <i className="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Day Headers */}
@@ -197,14 +209,24 @@ export default function DatePicker({
                         {renderCalendar()}
                     </div>
 
+                    <div className="datepicker-divider"></div>
+
                     {/* Footer */}
                     <div className="datepicker-footer">
-                        <div className="datepicker-input-display">
-                            {value ? formatDisplayDate(value) : '--/--/----'}
-                        </div>
                         <button
                             type="button"
-                            className="datepicker-set-btn"
+                            className="datepicker-reset-btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onChange) onChange({ target: { name, value: '' } });
+                                setIsOpen(false);
+                            }}
+                        >
+                            รีเซ็ต
+                        </button>
+                        <button
+                            type="button"
+                            className="datepicker-apply-btn"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setIsOpen(false);

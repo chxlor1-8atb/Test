@@ -265,154 +265,7 @@ a:hover {
     color: var(--primary-dark);
 }
 
-/* ========================================
-   Login Page - Glassmorphism
-   ======================================== */
 
-.login-page {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #E8E0D5 0%, #D4C4B0 25%, #EAE4DC 50%, #F0E8DD 75%, #E5DDD2 100%);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
-    padding: 1.5rem;
-    position: relative;
-    overflow: hidden;
-}
-
-@keyframes gradientBG {
-
-    0%,
-    100% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-}
-
-.login-page::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background:
-        radial-gradient(circle at 20% 30%, rgba(217, 119, 87, 0.15) 0%, transparent 30%),
-        radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 30%),
-        radial-gradient(circle at 60% 20%, rgba(14, 165, 233, 0.08) 0%, transparent 25%);
-    animation: floatBG 20s ease-in-out infinite;
-}
-
-@keyframes floatBG {
-
-    0%,
-    100% {
-        transform: translate(0, 0) rotate(0deg);
-    }
-
-    33% {
-        transform: translate(2%, 2%) rotate(1deg);
-    }
-
-    66% {
-        transform: translate(-1%, 1%) rotate(-1deg);
-    }
-}
-
-.login-container {
-    display: flex;
-    max-width: 920px;
-    width: 100%;
-    gap: 2.5rem;
-    position: relative;
-    z-index: 1;
-}
-
-/* Glass Card - Login */
-.login-card {
-    flex: 1;
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur-lg));
-    -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-    border: 1px solid var(--glass-border);
-    border-radius: var(--border-radius-2xl);
-    padding: 2.5rem;
-    box-shadow: var(--shadow-glass);
-}
-
-.login-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
-}
-
-.login-header .logo {
-    width: 72px;
-    height: 72px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    border-radius: var(--border-radius-xl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-    font-size: 1.75rem;
-    color: white;
-    box-shadow: 0 8px 32px rgba(217, 119, 87, 0.3);
-    transition: all var(--transition);
-}
-
-.login-header .logo:hover {
-    transform: scale(1.05) rotate(-3deg);
-    box-shadow: 0 12px 40px rgba(217, 119, 87, 0.4);
-}
-
-.login-header h1 {
-    font-size: 1.625rem;
-    margin-bottom: 0.35rem;
-}
-
-.login-header p {
-    color: var(--text-muted);
-    font-size: 0.9375rem;
-}
-
-/* Form Styles - Glass */
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-}
-
-.form-group label i {
-    color: var(--primary);
-    font-size: 0.875rem;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(10px);
-    border: 1.5px solid rgba(216, 211, 200, 0.5);
-    border-radius: var(--border-radius);
-    color: var(--text-primary);
-    font-size: 0.9375rem;
-    font-family: inherit;
-    transition: all var(--transition);
-}
 
 /* Modern Select Dropdown - Global Override with Smooth Transitions */
 select {
@@ -1280,6 +1133,8 @@ select option:checked {
     overflow: visible;
     position: relative;
     z-index: 10;
+    border-radius: 20px 20px 0 0;
+    /* Fix overflow visual bug */
 }
 
 .card-title {
@@ -1316,7 +1171,9 @@ select option:checked {
     padding: 1rem 1.5rem;
     border-top: 1px solid rgba(216, 211, 200, 0.3);
     background: rgba(255, 255, 255, 0.25);
+    border-radius: 0 0 20px 20px;
 }
+
 
 /* Stats Grid - Enhanced & Balanced */
 .stats-grid {
@@ -1964,10 +1821,11 @@ select option:checked {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 9999;
     opacity: 0;
     visibility: hidden;
     transition: all var(--transition);
+    padding: 1rem;
 }
 
 .modal-overlay.active,
@@ -2658,41 +2516,7 @@ body:has(.sidebar.show) .mobile-toggle i {
     }
 }
 
-/* Modal Styles - Fixed Centering */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-}
 
-.modal-overlay.show {
-    display: flex;
-}
-
-.modal {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    border-radius: var(--border-radius-lg);
-    width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-lg);
-    margin: auto;
-}
 
 .modal-header {
     padding: 1.5rem;
@@ -2948,15 +2772,43 @@ body:has(.sidebar.show) .mobile-toggle i {
     font-size: 0.8125rem !important;
 }
 
-/* Force pagination dropdown to open upwards to prevent clipping */
-.pagination-limit .custom-select-options {
-    top: auto;
-    bottom: calc(100% + 6px);
-    transform: translateY(8px);
+/* Pagination specific select overrides */
+.pagination-select.custom-select-wrapper {
+    min-width: 80px;
+    width: 80px;
 }
 
-.pagination-limit .custom-select-wrapper.open .custom-select-options {
+.pagination-select .custom-select-trigger {
+    height: 36px;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+}
+
+.pagination-select .custom-select-trigger:hover {
+    background-color: #FFF5F0;
+}
+
+/* Force pagination dropdown to open upwards to prevent clipping */
+/* Force pagination dropdown to open upwards to prevent clipping */
+.pagination-select .custom-select-options {
+    top: auto;
+    bottom: calc(100% + 6px);
+    border-radius: 12px;
+    max-height: 200px;
+    min-width: 100px;
+    left: auto;
+    right: 0; /* Align to right edge to prevent overflow on right side */
+    transform: translateY(8px);
+    transform-origin: bottom right;
+}
+
+.pagination-select.open .custom-select-options {
     transform: translateY(0);
+}
+
+.pagination-select .custom-select-option {
+    padding: 0.5rem 1rem;
+    text-align: center;
 }
 
 /* Mobile pagination adjustments */
@@ -2980,6 +2832,9 @@ body:has(.sidebar.show) .mobile-toggle i {
 /* ========================================
    Custom Select Dropdown - Themed
    ======================================== */
+/* ========================================
+   Custom Select Dropdown - Themed
+   ======================================== */
 .custom-select-wrapper {
     position: relative;
     display: inline-block;
@@ -2987,6 +2842,7 @@ body:has(.sidebar.show) .mobile-toggle i {
     max-width: 250px;
     width: auto;
     box-sizing: border-box;
+    font-family: var(--font-thai);
 }
 
 .custom-select-trigger {
@@ -2994,22 +2850,17 @@ body:has(.sidebar.show) .mobile-toggle i {
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1.5px solid rgba(216, 211, 200, 0.5);
-    border-radius: var(--border-radius);
+    background-color: #FFFFFF;
+    border: 1.5px solid #D97757; /* Primary Orange */
+    border-radius: 20px; /* More rounded */
     color: var(--text-primary);
     font-weight: 500;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     line-height: 1.4;
-    padding: 0.5rem 0.75rem;
-    height: 38px;
+    padding: 0.5rem 1rem;
+    height: 42px;
     cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.03),
-        inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
     user-select: none;
     width: 100%;
     box-sizing: border-box;
@@ -3021,30 +2872,30 @@ body:has(.sidebar.show) .mobile-toggle i {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 200px;
 }
 
 .custom-select-trigger:hover {
-    background-color: rgba(255, 255, 255, 1);
-    border-color: rgba(217, 119, 87, 0.5);
-    box-shadow:
-        0 4px 16px rgba(217, 119, 87, 0.1),
-        inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    background-color: #FFF5F0; /* Light orange tint on hover */
+    box-shadow: 0 4px 12px rgba(217, 119, 87, 0.15);
 }
 
 .custom-select-wrapper.open .custom-select-trigger {
-    border-color: var(--primary);
-    box-shadow:
-        0 0 0 3px rgba(217, 119, 87, 0.12),
-        0 6px 20px rgba(217, 119, 87, 0.15);
+    border-color: #C4623F; /* Darker orange when open */
+    background-color: #FFF;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    /* Optional: if you want it to look connected, but the image shows disconnected. 
+       Image shows trigger is separate. Let's keep it rounded. */
+    border-radius: 20px; 
 }
 
 .custom-select-trigger .arrow {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     transition: transform 0.25s ease;
-    color: var(--primary);
+    color: #D97757; /* Primary Orange */
     flex-shrink: 0;
+    font-size: 1rem;
 }
 
 .custom-select-wrapper.open .custom-select-trigger .arrow {
@@ -3053,29 +2904,37 @@ body:has(.sidebar.show) .mobile-toggle i {
 
 .custom-select-options {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 8px);
     left: 0;
     min-width: 100%;
     width: max-content;
     max-width: min(450px, calc(100vw - 2rem));
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1.5px solid rgba(216, 211, 200, 0.5);
-    border-radius: var(--border-radius);
-    box-shadow:
-        0 12px 40px rgba(0, 0, 0, 0.12),
-        0 4px 16px rgba(0, 0, 0, 0.08);
+    background: #FFFFFF !important;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     /* Responsive max-height based on viewport */
-    max-height: min(280px, 50vh);
-    overflow-y: auto;
-    overflow-x: hidden;
+    max-height: min(350px, 50vh);
+    overflow: hidden; /* Hide overflow for header rounding */
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
     transition: all 0.2s ease;
-    z-index: 1000;
-    padding: 6px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+}
+
+/* New Header Style from Image */
+.custom-select-header {
+    background-color: #D97757;
+    color: #FFFFFF;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    /* Separator line not needed as bg color differs */
 }
 
 .custom-select-wrapper.open .custom-select-options {
@@ -3085,32 +2944,41 @@ body:has(.sidebar.show) .mobile-toggle i {
 }
 
 .custom-select-option {
-    padding: 0.6rem 0.875rem;
+    padding: 12px 16px;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     font-weight: 500;
     color: var(--text-primary);
-    border-radius: 8px;
     transition: all 0.15s ease;
-    margin: 2px 0;
-    white-space: nowrap;
-    line-height: 1.4;
+    background: #FFFFFF;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.custom-select-option:last-child {
+    border-bottom: none;
 }
 
 .custom-select-option:hover {
-    background: linear-gradient(135deg, rgba(217, 119, 87, 0.08) 0%, rgba(217, 119, 87, 0.04) 100%);
-    color: var(--primary-dark);
+    background-color: #FFF5F0;
+    color: #C4623F;
 }
 
 .custom-select-option.selected {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(217, 119, 87, 0.3);
+    background-color: #FFF5F0;
+    color: #D97757;
+    font-weight: 600;
+    position: relative;
 }
 
-.custom-select-option.selected:hover {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, #B5553A 100%);
-    color: white;
+.custom-select-option.selected::after {
+    content: '\f00c'; /* FontAwesome check */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #D97757;
 }
 
 /* Custom scrollbar for dropdown */
@@ -3222,6 +3090,7 @@ body:has(.sidebar.show) .mobile-toggle i {
 .custom-select-options-list {
     flex: 1;
     overflow-y: auto;
+    background: #fff;
 }
 
 /* Option focused state (keyboard navigation) */
@@ -3650,6 +3519,7 @@ body:has(.sidebar.show) .mobile-toggle i {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: #fff;
 }
 
 .custom-option:hover {
@@ -4259,6 +4129,10 @@ div:where(.swal2-container) .swal2-close:hover {
    Custom DatePicker Styles
    ======================================== */
 
+/* ========================================
+   Custom DatePicker Styles
+   ======================================== */
+
 .datepicker-wrapper {
     position: relative;
     display: inline-block;
@@ -4274,33 +4148,38 @@ div:where(.swal2-container) .swal2-close:hover {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.625rem 0.875rem;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1.5px solid var(--border-color);
-    border-radius: var(--border-radius);
+    padding: 0.625rem 1rem;
+    background: #FFFFFF;
+    border: 1.5px solid #D97757; /* Primary Orange */
+    border-radius: 20px; /* More rounded */
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
     width: 100%;
+    height: 42px; /* Match height */
 }
 
 .datepicker-trigger:hover {
-    border-color: var(--primary);
-    box-shadow: 0 2px 8px rgba(217, 119, 87, 0.1);
+    background-color: #FFF5F0; /* Light orange tint on hover */
+    box-shadow: 0 4px 12px rgba(217, 119, 87, 0.15);
 }
 
 .datepicker-trigger.open {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.12);
+    border-color: #C4623F; /* Darker orange when open */
+    background-color: #FFF;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-radius: 20px;
 }
 
 .datepicker-trigger i:first-child {
-    color: var(--primary);
+    color: #D97757; /* Primary Orange */
     font-size: 1rem;
 }
 
 .datepicker-trigger span {
     flex: 1;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
     color: var(--text-primary);
 }
 
@@ -4310,7 +4189,7 @@ div:where(.swal2-container) .swal2-close:hover {
 
 .datepicker-trigger .arrow {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: #D97757; /* Primary Orange */
     transition: transform 0.25s ease;
 }
 
@@ -4318,20 +4197,24 @@ div:where(.swal2-container) .swal2-close:hover {
     transform: rotate(180deg);
 }
 
-/* Dropdown Calendar */
+/* Dropdown Calendar - Modern Re-design (Material 3 Inspired) */
 .datepicker-dropdown {
     position: absolute;
     top: calc(100% + 8px);
-    left: 0;
-    min-width: 280px;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--border-radius-lg);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    left: auto;
+    right: 0; /* Align to right to prevent overflow */
+    min-width: 320px;
+    max-width: calc(100vw - 2rem); /* Ensure it doesn't overflow viewport */
+    background: #FFFFFF;
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
     z-index: 9999;
     overflow: hidden;
     animation: datepickerSlideIn 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
 }
 
 @keyframes datepickerSlideIn {
@@ -4339,21 +4222,57 @@ div:where(.swal2-container) .swal2-close:hover {
         opacity: 0;
         transform: translateY(-8px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* Header */
-.datepicker-header {
+/* Top Display */
+.datepicker-display-top {
+    padding: 1.25rem 1.5rem;
+    background: #FFFFFF;
+}
+
+.datepicker-display-top .display-label {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.datepicker-display-top .display-date-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.datepicker-divider {
+    height: 1px;
+    background-color: #F0F0F0;
+    width: 100%;
+}
+
+/* Calendar Header */
+.datepicker-calendar-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.875rem 1rem;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: white;
+    padding: 1rem 1.5rem 0.5rem 1.5rem;
+    background: #FFFFFF;
+}
+
+.datepicker-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.datepicker-nav-buttons {
+    display: flex;
+    gap: 0.25rem;
 }
 
 .datepicker-nav {
@@ -4362,21 +4281,17 @@ div:where(.swal2-container) .swal2-close:hover {
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    color: white;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .datepicker-nav:hover {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.datepicker-title {
-    font-weight: 600;
-    font-size: 0.9375rem;
+    background-color: #F5F5F5;
+    color: var(--text-primary);
 }
 
 /* Day Headers */
@@ -4384,15 +4299,15 @@ div:where(.swal2-container) .swal2-close:hover {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     padding: 0.5rem 0.75rem;
-    background: rgba(217, 119, 87, 0.08);
+    background: #F8F8F8;
 }
 
 .datepicker-day-name {
     text-align: center;
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--primary-dark);
-    padding: 0.5rem 0;
+    color: var(--text-muted);
+    padding: 0.25rem 0;
 }
 
 /* Days Grid */
@@ -4400,17 +4315,21 @@ div:where(.swal2-container) .swal2-close:hover {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 2px;
-    padding: 0.5rem;
+    padding: 0.75rem;
+    background: #fff;
 }
 
 .datepicker-day {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    margin: 2px auto;
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 40px;
+    max-height: 40px;
+    margin: 0 auto;
     font-size: 0.875rem;
+    font-weight: 500;
     color: var(--text-primary);
     border-radius: 50%;
     cursor: pointer;
@@ -4418,8 +4337,8 @@ div:where(.swal2-container) .swal2-close:hover {
 }
 
 .datepicker-day:hover:not(.empty):not(.selected) {
-    background: rgba(217, 119, 87, 0.1);
-    color: var(--primary-dark);
+    background-color: #FFF5F0; /* Light Orange */
+    color: #D97757;
 }
 
 .datepicker-day.empty {
@@ -4427,44 +4346,51 @@ div:where(.swal2-container) .swal2-close:hover {
 }
 
 .datepicker-day.today {
-    border: 2px solid var(--primary);
+    border: 1px solid #D97757;
     font-weight: 600;
+    color: #D97757;
 }
 
 .datepicker-day.selected {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background-color: #D97757;
     color: white;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(217, 119, 87, 0.3);
 }
 
 /* Footer */
 .datepicker-footer {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    background: rgba(248, 247, 245, 0.8);
-    border-top: 1px solid var(--border-color);
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #F8F8F8;
+    border-top: 1px solid #F0F0F0;
 }
 
-.datepicker-input-display {
-    flex: 1;
-    padding: 0.5rem 0.75rem;
-    background: white;
+.datepicker-reset-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    font-weight: 500;
     font-size: 0.875rem;
-    color: var(--text-primary);
-    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.datepicker-set-btn {
-    padding: 0.5rem 1.25rem;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+.datepicker-reset-btn:hover {
+    background-color: #F5F5F5;
+    color: var(--text-primary);
+    border-color: #CCC;
+}
+
+.datepicker-apply-btn {
+    padding: 0.5rem 1.5rem;
+    background-color: #D97757;
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: 20px;
     color: white;
     font-weight: 600;
     font-size: 0.875rem;
@@ -4472,9 +4398,9 @@ div:where(.swal2-container) .swal2-close:hover {
     transition: all 0.2s ease;
 }
 
-.datepicker-set-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(217, 119, 87, 0.3);
+.datepicker-apply-btn:hover {
+    background-color: #C4623F;
+    box-shadow: 0 4px 12px rgba(217, 119, 87, 0.25);
 }
 
 /* Mobile Responsive */
@@ -5278,6 +5204,11 @@ div:where(.swal2-container) .swal2-close:hover {
     min-width: 80px;
 }
 
+/* CRITICAL: When editing, bring the cell to front */
+.editable-cell.editing {
+    z-index: 10000;
+}
+
 .editable-cell.disabled {
     cursor: default;
     color: var(--text-muted);
@@ -5285,7 +5216,11 @@ div:where(.swal2-container) .swal2-close:hover {
 
 /* Display mode */
 .editable-cell-display {
-    display: inline-flex;
+    display: flex;
+    /* Changed from inline-flex to flex */
+    width: 100%;
+    /* Ensure full width */
+    max-width: 100%;
     align-items: center;
     gap: 0.5rem;
     padding: 0.375rem 0.5rem;
@@ -5301,6 +5236,8 @@ div:where(.swal2-container) .swal2-close:hover {
 
 .editable-cell-value {
     flex: 1;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .editable-cell-icon {
@@ -5344,6 +5281,60 @@ div:where(.swal2-container) .swal2-close:hover {
 .editable-cell-select {
     min-width: 120px;
     cursor: pointer;
+}
+
+/* Custom Select in Editable Cell */
+.editable-cell-custom-select {
+    min-width: 140px;
+}
+
+.editable-cell-custom-select .custom-select-trigger {
+    padding: 0.375rem 0.5rem;
+    min-height: 32px;
+    font-size: 0.875rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1.5px solid var(--primary);
+    box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.12);
+}
+
+.editable-cell-custom-select .custom-select-trigger:hover {
+    background: #fff;
+}
+
+.editable-cell-custom-select .custom-select-trigger .arrow-container {
+    width: 16px;
+    height: 16px;
+}
+
+.editable-cell-custom-select .custom-select-trigger .arrow {
+    font-size: 0.625rem;
+}
+
+.editable-cell-custom-select .custom-select-options {
+    min-width: 160px;
+    max-height: 200px;
+    z-index: 9999;
+    background: #fff !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.editable-cell-custom-select .custom-select-options-list {
+    background: #fff;
+}
+
+.editable-cell-custom-select .custom-option {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    background: #fff;
+}
+
+.editable-cell-custom-select .custom-option:hover {
+    background: var(--primary-bg, #FEF3E2);
+}
+
+.editable-cell-custom-select .custom-option.selected {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
 }
 
 /* Saving state */
@@ -6354,6 +6345,7 @@ img {
     content-visibility: auto;
     contain-intrinsic-size: 0 48px;
 }
+
 /* ========================================
    Date Picker - Glassmorphism
    ======================================== */
@@ -6419,14 +6411,12 @@ img {
     top: calc(100% + 0.5rem);
     left: 0;
     min-width: 320px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(var(--glass-blur-lg));
-    -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+    background: #FFFFFF !important;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-glass), var(--shadow-xl);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     padding: 1.25rem;
-    z-index: 100;
+    z-index: 9999;
     animation: fadeIn 0.2s ease-out;
 }
 
@@ -6565,4 +6555,3 @@ img {
     opacity: 0.6;
     pointer-events: none;
 }
-

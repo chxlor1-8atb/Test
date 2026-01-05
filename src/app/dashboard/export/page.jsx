@@ -136,19 +136,24 @@ export default function ExportPage() {
                                 <i className="fas fa-file-csv"></i> ส่งออกเป็น CSV
                             </button>
                         </div>
-                    </form>
-                </div>
-            </div>
 
-            <div className="card" style={{ border: '1px solid var(--border-color)', boxShadow: 'none' }}>
-                <div className="card-header">
-                    <h3 className="card-title" style={{ fontSize: '1rem' }}><i className="fas fa-info-circle"></i> คำแนะนำ</h3>
-                </div>
-                <div className="card-body">
-                    <ul style={{ margin: 0, paddingLeft: '1.5rem', color: 'var(--text-secondary)' }}>
-                        <li>ไฟล์ CSV สามารถเปิดด้วย Microsoft Excel หรือ Google Sheets</li>
-                        <li>ข้อมูลจะถูกส่งออกตามตัวกรองที่เลือก</li>
-                    </ul>
+                        {/* Tips Section */}
+                        <div className="export-tips" style={{ 
+                            marginTop: '1.5rem', 
+                            padding: '0.75rem 1rem', 
+                            background: 'rgba(0, 0, 0, 0.02)', 
+                            borderRadius: '8px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.5rem' }}>
+                                <i className="fas fa-info-circle" style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}></i>
+                                <span style={{ fontWeight: 500, color: 'var(--text-muted)', fontSize: '0.75rem' }}>คำแนะนำ</span>
+                            </div>
+                            <ul style={{ margin: 0, paddingLeft: '1rem', color: 'var(--text-muted)', fontSize: '0.75rem', lineHeight: '1.5' }}>
+                                <li>ไฟล์ CSV สามารถเปิดด้วย Microsoft Excel หรือ Google Sheets</li>
+                                <li>ข้อมูลจะถูกส่งออกตามตัวกรองที่เลือก</li>
+                            </ul>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

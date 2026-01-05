@@ -30,7 +30,7 @@ export async function GET(request) {
             case 'license_breakdown':
                 return await getLicenseBreakdown();
             case 'recent_activity':
-                return await getRecentActivity();
+                return await getRecentActivity(session);
             default:
                 return await getStats();
         }
@@ -105,7 +105,12 @@ async function getExpiringCount() {
     });
 }
 
-async function getRecentActivity() {
+async function getRecentActivity(session) {
+    // Security check: Only admins can see activity logs
+    if (session.role !== 'admin') {
+        return NextResponse.json({ success: true, activities: [] });
+    }
+
     const activities = await fetchAll(`
         SELECT a.*, COALESCE(u.full_name, 'System') as user_name 
         FROM audit_logs a

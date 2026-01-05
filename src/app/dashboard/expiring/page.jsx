@@ -9,6 +9,7 @@ import CustomSelect from '@/components/ui/CustomSelect';
 import Pagination from '@/components/ui/Pagination';
 import FilterRow, { SearchInput } from '@/components/ui/FilterRow';
 import TableSkeleton from '@/components/ui/TableSkeleton';
+import DatePicker from '@/components/ui/DatePicker';
 
 // Constants - Expiry thresholds
 const EXPIRY_THRESHOLDS = {
@@ -34,6 +35,9 @@ export default function ExpiringPage() {
     const [search, setSearch] = useState('');
     const [filterType, setFilterType] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+    const [sortOrder, setSortOrder] = useState('expiry_asc');
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(20);
 
@@ -95,8 +99,34 @@ export default function ExpiringPage() {
             });
         }
 
+        // Date Range Filter
+        if (dateFrom) {
+            const from = new Date(dateFrom).setHours(0, 0, 0, 0);
+            result = result.filter(l => new Date(l.expiry_date).setHours(0, 0, 0, 0) >= from);
+        }
+        if (dateTo) {
+            const to = new Date(dateTo).setHours(23, 59, 59, 999);
+            result = result.filter(l => new Date(l.expiry_date).setHours(0, 0, 0, 0) <= to);
+        }
+
+        // Sort
+        result.sort((a, b) => {
+            switch (sortOrder) {
+                case 'expiry_asc':
+                    return new Date(a.expiry_date) - new Date(b.expiry_date);
+                case 'expiry_desc':
+                    return new Date(b.expiry_date) - new Date(a.expiry_date);
+                case 'shop_asc':
+                    return a.shop_name.localeCompare(b.shop_name, 'th');
+                case 'shop_desc':
+                    return b.shop_name.localeCompare(a.shop_name, 'th');
+                default:
+                    return 0;
+            }
+        });
+
         return result;
-    }, [allLicenses, search, filterType, statusFilter]);
+    }, [allLicenses, search, filterType, statusFilter, dateFrom, dateTo, sortOrder]);
 
     // Pagination
     const totalPages = Math.ceil(filteredLicenses.length / limit);
@@ -107,7 +137,16 @@ export default function ExpiringPage() {
     // Reset to page 1 when filters change
     useEffect(() => {
         setPage(1);
-    }, [search, filterType, statusFilter]);
+    }, [search, filterType, statusFilter, dateFrom, dateTo, sortOrder]);
+
+    const clearFilters = () => {
+        setSearch('');
+        setFilterType('');
+        setStatusFilter('');
+        setDateFrom('');
+        setDateTo('');
+        setSortOrder('expiry_asc');
+    };
 
     const handleStatusFilterToggle = (status) => {
         setStatusFilter(prev => prev === status ? '' : status);
@@ -137,21 +176,67 @@ export default function ExpiringPage() {
 
             <div className="card-body">
                 <FilterRow>
-                    <SearchInput
-                        value={search}
-                        onChange={setSearch}
-                        placeholder="ค้นหาร้านค้า..."
-                    />
-                    <CustomSelect
-                        value={filterType}
-                        onChange={(e) => setFilterType(e.target.value)}
-                        options={[
-                            { value: '', label: 'ทุกประเภท' },
-                            ...typesList.map(t => ({ value: t, label: t }))
-                        ]}
-                        placeholder="ทุกประเภท"
-                        style={{ minWidth: '200px', width: 'auto' }}
-                    />
+                    <div className="filter-group">
+                        <SearchInput
+                            value={search}
+                            onChange={setSearch}
+                            placeholder="ค้นหาร้านค้า, เลขที่..."
+                            className="w-full"
+                        />
+                    </div>
+
+                    <div className="filter-group">
+                        <CustomSelect
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value)}
+                            options={[
+                                { value: '', label: 'ทุกประเภทใบอนุญาต' },
+                                ...typesList.map(t => ({ value: t, label: t }))
+                            ]}
+                            placeholder="ประเภทใบอนุญาต"
+                            icon="fas fa-tags"
+                        />
+                    </div>
+
+                    <div className="filter-group">
+                        <DatePicker
+                            value={dateFrom}
+                            onChange={(e) => setDateFrom(e.target.value)}
+                            placeholder="วันหมดอายุ (เริ่มต้น)"
+                        />
+                    </div>
+
+                    <div className="filter-group">
+                        <DatePicker
+                            value={dateTo}
+                            onChange={(e) => setDateTo(e.target.value)}
+                            placeholder="วันหมดอายุ (สิ้นสุด)"
+                        />
+                    </div>
+
+                    <div className="filter-group">
+                        <CustomSelect
+                            value={sortOrder}
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            options={[
+                                { value: 'expiry_asc', label: 'วันหมดอายุ (ใกล้ -> ไกล)' },
+                                { value: 'expiry_desc', label: 'วันหมดอายุ (ไกล -> ใกล้)' },
+                                { value: 'shop_asc', label: 'ชื่อร้าน (ก-ฮ)' },
+                                { value: 'shop_desc', label: 'ชื่อร้าน (ฮ-ก)' }
+                            ]}
+                            icon="fas fa-sort"
+                            placeholder="เรียงลำดับ"
+                        />
+                    </div>
+
+                    <button
+                        className="btn btn-secondary btn-icon"
+                        onClick={clearFilters}
+                        title="ล้างตัวกรอง"
+                        style={{ height: '42px', width: '42px' }}
+                    >
+                        <i className="fas fa-undo"></i>
+                    </button>
                 </FilterRow>
 
                 <div className="table-container">
@@ -199,6 +284,31 @@ export default function ExpiringPage() {
                 .active-filter {
                     outline: 2px solid #fff;
                     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+                }
+                :global(.filter-row) {
+                    display: grid !important;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 1rem;
+                    width: 100%;
+                }
+                :global(.filter-group) {
+                    width: 100%;
+                    min-width: 0; /* Prevent grid blowout */
+                }
+                /* Force all inputs to be full width within their group */
+                :global(.filter-group .custom-select-wrapper),
+                :global(.filter-group .datepicker-wrapper),
+                :global(.filter-group input) {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 0 !important; 
+                }
+                /* Ensure triggers match height */
+                :global(.datepicker-trigger),
+                :global(.custom-select-trigger),
+                :global(.filter-group input) {
+                    height: 42px; /* Consistent height */
+                    box-sizing: border-box;
                 }
             `}</style>
         </div>

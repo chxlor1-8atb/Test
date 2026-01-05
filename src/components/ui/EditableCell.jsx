@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import DatePicker from './DatePicker';
+import CustomSelect from './CustomSelect';
 
 /**
  * EditableCell - Inline editable table cell component
@@ -107,21 +108,35 @@ export default function EditableCell({
         switch (type) {
             case 'select':
                 return (
-                    <select
-                        ref={inputRef}
+                    <CustomSelect
                         value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        onBlur={handleBlur}
+                        options={options}
+                        onChange={(e) => {
+                            const newValue = e.target.value;
+                            setEditValue(newValue);
+                            // Auto save when selecting from dropdown
+                            if (newValue !== value) {
+                                setIsSaving(true);
+                                onSave(newValue)
+                                    .then(() => {
+                                        setIsEditing(false);
+                                        setSaveSuccess(true);
+                                    })
+                                    .catch((error) => {
+                                        console.error('Save failed:', error);
+                                        setEditValue(value);
+                                        setSaveError(true);
+                                    })
+                                    .finally(() => {
+                                        setIsSaving(false);
+                                    });
+                            } else {
+                                setIsEditing(false);
+                            }
+                        }}
                         disabled={isSaving}
-                        className="editable-cell-select"
-                    >
-                        {options.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </option>
-                        ))}
-                    </select>
+                        className="editable-cell-custom-select"
+                    />
                 );
             case 'date':
                 return (

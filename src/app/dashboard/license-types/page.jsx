@@ -33,7 +33,7 @@ export default function LicenseTypesPage() {
     const fetchTypes = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(API_ENDPOINTS.LICENSE_TYPES);
+            const response = await fetch(`${API_ENDPOINTS.LICENSE_TYPES}?t=${new Date().getTime()}`);
             const data = await response.json();
             if (data.success) {
                 setTypes(data.types || []);

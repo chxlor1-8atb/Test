@@ -7,6 +7,7 @@ export default function CustomSelect({
     options = [],
     placeholder = 'Select option',
     name,
+    label,
     className = '',
     style = {},
     icon,
@@ -92,7 +93,12 @@ export default function CustomSelect({
                 </div>
             </div>
 
-            <div className={`custom-options ${isOpen ? 'show' : ''}`}>
+            <div className={`custom-select-options ${isOpen ? 'show' : ''}`}>
+                {label && (
+                    <div className="custom-select-header">
+                        {label}
+                    </div>
+                )}
                 {/* Search Input */}
                 {searchable && (
                     <div className="custom-select-search">

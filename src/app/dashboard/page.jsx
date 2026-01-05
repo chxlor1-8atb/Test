@@ -40,9 +40,24 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const [user, setUser] = useState(null);
+
     useEffect(() => {
+        checkAuth();
         fetchDashboardData();
     }, []);
+
+    const checkAuth = async () => {
+        try {
+            const res = await fetch(API_ENDPOINTS.AUTH + '?action=check');
+            const data = await res.json();
+            if (data.success) {
+                setUser(data.user);
+            }
+        } catch (err) {
+            console.error('Auth check failed', err);
+        }
+    };
 
     const fetchDashboardData = useCallback(async () => {
         try {
@@ -78,7 +93,7 @@ export default function DashboardPage() {
         <div>
             <StatsGrid stats={stats} />
             <ChartComponents breakdown={breakdown} />
-            <RecentActivityCard activities={recentActivity} />
+            {user?.role === 'admin' && <RecentActivityCard activities={recentActivity} />}
         </div>
     );
 }
@@ -124,7 +139,7 @@ function StatCard({ value, label, icon, variant }) {
  */
 function RecentActivityCard({ activities }) {
     return (
-        <div className="card chart-card" style={{ marginTop: '1.5rem' }}>
+        <div className="card" style={{ marginTop: '1.5rem' }}>
             <div className="card-header">
                 <h3 className="card-title">
                     <i className="fas fa-history"></i> ประวัติการใช้งานล่าสุด

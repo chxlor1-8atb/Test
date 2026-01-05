@@ -9,14 +9,14 @@
 
 ## 📌 Project Overview
 
-ระบบจัดการใบอนุญาตร้านค้า (Shop License Management System) สำหรับติดตามสถานะใบอนุญาตของร้านค้าต่างๆ รวมถึงแจ้งเตือนก่อนหมดอายุผ่าน Telegram
+ระบบจัดการใบอนุญาตร้านค้า (Shop License Management System) สำหรับติดตามสถานะใบอนุญาตของร้านค้าต่างๆ
 
 **Core Features:**
+
 - จัดการข้อมูลร้านค้า (CRUD)
 - จัดการใบอนุญาต (CRUD)
 - จัดการประเภทใบอนุญาต
 - Dashboard แสดงสถิติและสถานะ
-- แจ้งเตือนใบอนุญาตใกล้หมดอายุ (Telegram)
 - Export ข้อมูลเป็น CSV
 - ระบบ Authentication (Login/Logout)
 - Custom Fields & Entities (Dynamic fields)
@@ -25,18 +25,18 @@
 
 ## 🛠 Tech Stack
 
-| Category          | Technology                                |
-| ----------------- | ----------------------------------------- |
-| **Framework**     | Next.js 14 (App Router)                   |
-| **Language**      | JavaScript (ES6+), JSX                    |
-| **Styling**       | Vanilla CSS (ไม่ใช้ Tailwind)             |
-| **Database**      | Neon PostgreSQL (Serverless)              |
-| **ORM/Query**     | Raw SQL with `@neondatabase/serverless`   |
-| **Auth**          | iron-session (cookie-based)               |
-| **Password Hash** | bcryptjs                                  |
-| **Charts**        | Chart.js + react-chartjs-2                |
-| **Alerts/Dialogs**| SweetAlert2                               |
-| **HTTP Client**   | Native fetch API                          |
+| Category           | Technology                              |
+| ------------------ | --------------------------------------- |
+| **Framework**      | Next.js 14 (App Router)                 |
+| **Language**       | JavaScript (ES6+), JSX                  |
+| **Styling**        | Vanilla CSS (ไม่ใช้ Tailwind)           |
+| **Database**       | Neon PostgreSQL (Serverless)            |
+| **ORM/Query**      | Raw SQL with `@neondatabase/serverless` |
+| **Auth**           | iron-session (cookie-based)             |
+| **Password Hash**  | bcryptjs                                |
+| **Charts**         | Chart.js + react-chartjs-2              |
+| **Alerts/Dialogs** | SweetAlert2                             |
+| **HTTP Client**    | Native fetch API                        |
 
 ---
 
@@ -152,9 +152,11 @@
 
 ### Key Relationships
 ```
+
 shops (1) ──────< (N) licenses
 license_types (1) ──────< (N) licenses
-```
+
+````
 
 ### Important Columns
 
@@ -165,9 +167,10 @@ username VARCHAR(255) UNIQUE NOT NULL
 password VARCHAR(255) NOT NULL      -- bcrypt hashed
 full_name VARCHAR(255)
 role VARCHAR(50) DEFAULT 'user'     -- 'admin' | 'user'
-```
+````
 
 **shops table:**
+
 ```sql
 id SERIAL PRIMARY KEY
 shop_name VARCHAR(255) NOT NULL
@@ -179,6 +182,7 @@ notes TEXT
 ```
 
 **licenses table:**
+
 ```sql
 id SERIAL PRIMARY KEY
 shop_id INTEGER REFERENCES shops(id) ON DELETE CASCADE
@@ -257,7 +261,7 @@ import { useState, useEffect } from 'react';
 
 export default function MyComponent() {
     const [data, setData] = useState([]);
-    
+
     return <div className="card">Content</div>;
 }
 
@@ -287,75 +291,78 @@ export default MyComponent;
 
 ```javascript
 // ✅ CORRECT - src/app/api/[resource]/route.js
-import { NextResponse } from 'next/server';
-import { query, fetchOne, insert } from '@/lib/db';
-import { cookies } from 'next/headers';
-import { getSessionFromCookies } from '@/lib/session';
+import { NextResponse } from "next/server";
+import { query, fetchOne, insert } from "@/lib/db";
+import { cookies } from "next/headers";
+import { getSessionFromCookies } from "@/lib/session";
 
 // GET - List all
 export async function GET(request) {
-    try {
-        // Optional: Check auth
-        const cookieStore = await cookies();
-        const session = await getSessionFromCookies(cookieStore);
-        if (!session.user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const data = await query('SELECT * FROM shops ORDER BY id');
-        return NextResponse.json(data);
-    } catch (error) {
-        console.error('GET Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    // Optional: Check auth
+    const cookieStore = await cookies();
+    const session = await getSessionFromCookies(cookieStore);
+    if (!session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const data = await query("SELECT * FROM shops ORDER BY id");
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("GET Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
 // POST - Create
 export async function POST(request) {
-    try {
-        const body = await request.json();
-        
-        // Validate required fields
-        if (!body.shop_name) {
-            return NextResponse.json({ error: 'Shop name required' }, { status: 400 });
-        }
-        
-        const newId = await insert('shops', {
-            shop_name: body.shop_name,
-            phone: body.phone || null
-        });
-        
-        return NextResponse.json({ success: true, id: newId });
-    } catch (error) {
-        console.error('POST Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    const body = await request.json();
+
+    // Validate required fields
+    if (!body.shop_name) {
+      return NextResponse.json(
+        { error: "Shop name required" },
+        { status: 400 }
+      );
     }
+
+    const newId = await insert("shops", {
+      shop_name: body.shop_name,
+      phone: body.phone || null,
+    });
+
+    return NextResponse.json({ success: true, id: newId });
+  } catch (error) {
+    console.error("POST Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
 // PUT - Update
 export async function PUT(request) {
-    try {
-        const body = await request.json();
-        const { id, ...data } = body;
-        
-        await update('shops', data, 'id = ?', [id]);
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  try {
+    const body = await request.json();
+    const { id, ...data } = body;
+
+    await update("shops", data, "id = ?", [id]);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
 // DELETE - Remove
 export async function DELETE(request) {
-    try {
-        const { searchParams } = new URL(request.url);
-        const id = searchParams.get('id');
-        
-        await remove('shops', 'id = ?', [id]);
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    await remove("shops", "id = ?", [id]);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 ```
 
@@ -363,13 +370,13 @@ export async function DELETE(request) {
 
 ```javascript
 // ✅ CORRECT - Import from @/lib/db
-import { query, fetchOne, fetchAll, insert, update, remove } from '@/lib/db';
+import { query, fetchOne, fetchAll, insert, update, remove } from "@/lib/db";
 
 // Select all
-const shops = await query('SELECT * FROM shops ORDER BY id');
+const shops = await query("SELECT * FROM shops ORDER BY id");
 
 // Select with params (use $1, $2, etc. for PostgreSQL)
-const shop = await fetchOne('SELECT * FROM shops WHERE id = $1', [shopId]);
+const shop = await fetchOne("SELECT * FROM shops WHERE id = $1", [shopId]);
 
 // Select with JOIN
 const licenses = await query(`
@@ -381,43 +388,43 @@ const licenses = await query(`
 `);
 
 // Insert (returns new id)
-const newId = await insert('shops', { 
-    shop_name: 'Test Shop', 
-    phone: '0891234567' 
+const newId = await insert("shops", {
+  shop_name: "Test Shop",
+  phone: "0891234567",
 });
 
 // Update (uses ? placeholder, converted internally)
-await update('shops', { shop_name: 'New Name' }, 'id = ?', [shopId]);
+await update("shops", { shop_name: "New Name" }, "id = ?", [shopId]);
 
 // Delete
-await remove('shops', 'id = ?', [shopId]);
+await remove("shops", "id = ?", [shopId]);
 
 // ❌ WRONG - String concatenation (SQL Injection!)
 const shops = await query(`SELECT * FROM shops WHERE id = ${id}`);
 
 // ❌ WRONG - Using mysql2 syntax
-const shops = await query('SELECT * FROM shops WHERE id = ?', [id]);
+const shops = await query("SELECT * FROM shops WHERE id = ?", [id]);
 ```
 
 ### Session/Auth Rules
 
 ```javascript
 // ✅ CORRECT - Check session in API routes
-import { cookies } from 'next/headers';
-import { getSessionFromCookies } from '@/lib/session';
+import { cookies } from "next/headers";
+import { getSessionFromCookies } from "@/lib/session";
 
 export async function GET() {
-    const cookieStore = await cookies();
-    const session = await getSessionFromCookies(cookieStore);
-    
-    if (!session.user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    // session.user contains: { id, username, fullName, role }
-    console.log('User:', session.user.username);
-    
-    // ... proceed with authenticated request
+  const cookieStore = await cookies();
+  const session = await getSessionFromCookies(cookieStore);
+
+  if (!session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // session.user contains: { id, username, fullName, role }
+  console.log("User:", session.user.username);
+
+  // ... proceed with authenticated request
 }
 ```
 
@@ -426,18 +433,18 @@ export async function GET() {
 ```javascript
 // ✅ CORRECT - Try/catch with detailed error response
 try {
-    const result = await query('SELECT * FROM shops');
-    return NextResponse.json(result);
+  const result = await query("SELECT * FROM shops");
+  return NextResponse.json(result);
 } catch (error) {
-    console.error('API Error:', error);
-    return NextResponse.json(
-        { 
-            error: 'Operation failed', 
-            details: error.message,
-            code: error.code || 'UNKNOWN'
-        },
-        { status: 500 }
-    );
+  console.error("API Error:", error);
+  return NextResponse.json(
+    {
+      error: "Operation failed",
+      details: error.message,
+      code: error.code || "UNKNOWN",
+    },
+    { status: 500 }
+  );
 }
 ```
 
@@ -445,39 +452,39 @@ try {
 
 ```javascript
 // ✅ CORRECT - Use Swal for user feedback
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 
 // Success message with auto-close
 Swal.fire({
-    icon: 'success',
-    title: 'สำเร็จ!',
-    text: 'บันทึกข้อมูลเรียบร้อยแล้ว',
-    timer: 1500,
-    showConfirmButton: false
+  icon: "success",
+  title: "สำเร็จ!",
+  text: "บันทึกข้อมูลเรียบร้อยแล้ว",
+  timer: 1500,
+  showConfirmButton: false,
 });
 
 // Error message
 Swal.fire({
-    icon: 'error',
-    title: 'เกิดข้อผิดพลาด',
-    text: error.message
+  icon: "error",
+  title: "เกิดข้อผิดพลาด",
+  text: error.message,
 });
 
 // Confirmation dialog before delete
 const result = await Swal.fire({
-    icon: 'warning',
-    title: 'ยืนยันการลบ?',
-    text: 'คุณต้องการลบข้อมูลนี้หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'ลบ',
-    cancelButtonText: 'ยกเลิก'
+  icon: "warning",
+  title: "ยืนยันการลบ?",
+  text: "คุณต้องการลบข้อมูลนี้หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้",
+  showCancelButton: true,
+  confirmButtonColor: "#d33",
+  cancelButtonColor: "#3085d6",
+  confirmButtonText: "ลบ",
+  cancelButtonText: "ยกเลิก",
 });
 
 if (result.isConfirmed) {
-    // proceed with delete
-    await fetch(`/api/shops?id=${id}`, { method: 'DELETE' });
+  // proceed with delete
+  await fetch(`/api/shops?id=${id}`, { method: "DELETE" });
 }
 ```
 
@@ -497,6 +504,7 @@ if (result.isConfirmed) {
 ```
 
 **Session Cookie Config (from session.js):**
+
 - Cookie name: `shop_license_session`
 - Max age: 30 minutes
 - HTTP Only: true
@@ -509,46 +517,50 @@ if (result.isConfirmed) {
 ## 📋 API Endpoints Reference
 
 ### Authentication
-| Method | Endpoint     | Description          |
-| ------ | ------------ | -------------------- |
-| POST   | `/api/auth`  | Login (username, password) |
+
+| Method | Endpoint    | Description                |
+| ------ | ----------- | -------------------------- |
+| POST   | `/api/auth` | Login (username, password) |
 
 ### Core Resources
-| Method | Endpoint              | Description                |
-| ------ | --------------------- | -------------------------- |
-| GET    | `/api/dashboard`      | Get dashboard stats & charts |
-| GET    | `/api/shops`          | List all shops             |
-| POST   | `/api/shops`          | Create shop                |
-| PUT    | `/api/shops`          | Update shop                |
-| DELETE | `/api/shops?id={id}`  | Delete shop                |
-| GET    | `/api/licenses`       | List licenses (with JOINs) |
-| POST   | `/api/licenses`       | Create license             |
-| PUT    | `/api/licenses`       | Update license             |
-| DELETE | `/api/licenses?id={id}` | Delete license           |
-| GET    | `/api/license-types`  | List license types         |
-| POST   | `/api/license-types`  | Create license type        |
-| PUT    | `/api/license-types`  | Update license type        |
-| DELETE | `/api/license-types?id={id}` | Delete license type |
-| GET    | `/api/users`          | List users                 |
-| POST   | `/api/users`          | Create user                |
-| PUT    | `/api/users`          | Update user                |
-| DELETE | `/api/users?id={id}`  | Delete user                |
+
+| Method | Endpoint                     | Description                  |
+| ------ | ---------------------------- | ---------------------------- |
+| GET    | `/api/dashboard`             | Get dashboard stats & charts |
+| GET    | `/api/shops`                 | List all shops               |
+| POST   | `/api/shops`                 | Create shop                  |
+| PUT    | `/api/shops`                 | Update shop                  |
+| DELETE | `/api/shops?id={id}`         | Delete shop                  |
+| GET    | `/api/licenses`              | List licenses (with JOINs)   |
+| POST   | `/api/licenses`              | Create license               |
+| PUT    | `/api/licenses`              | Update license               |
+| DELETE | `/api/licenses?id={id}`      | Delete license               |
+| GET    | `/api/license-types`         | List license types           |
+| POST   | `/api/license-types`         | Create license type          |
+| PUT    | `/api/license-types`         | Update license type          |
+| DELETE | `/api/license-types?id={id}` | Delete license type          |
+| GET    | `/api/users`                 | List users                   |
+| POST   | `/api/users`                 | Create user                  |
+| PUT    | `/api/users`                 | Update user                  |
+| DELETE | `/api/users?id={id}`         | Delete user                  |
 
 ### Features
-| Method | Endpoint              | Description                |
-| ------ | --------------------- | -------------------------- |
-| GET    | `/api/export`         | Export licenses as CSV     |
-| GET    | `/api/notifications`  | Get notification settings  |
-| POST   | `/api/notifications`  | Update notification config |
+
+| Method | Endpoint             | Description                |
+| ------ | -------------------- | -------------------------- |
+| GET    | `/api/export`        | Export licenses as CSV     |
+| GET    | `/api/notifications` | Get notification settings  |
+| POST   | `/api/notifications` | Update notification config |
 
 ### Dynamic Fields (Advanced)
-| Method | Endpoint                  | Description              |
-| ------ | ------------------------- | ------------------------ |
-| GET    | `/api/entities`           | List custom entities     |
-| GET    | `/api/entity-fields`      | List entity fields       |
-| GET    | `/api/entity-records`     | List entity records      |
-| GET    | `/api/custom-fields`      | List custom fields       |
-| GET    | `/api/custom-field-values`| Get custom field values  |
+
+| Method | Endpoint                   | Description             |
+| ------ | -------------------------- | ----------------------- |
+| GET    | `/api/entities`            | List custom entities    |
+| GET    | `/api/entity-fields`       | List entity fields      |
+| GET    | `/api/entity-records`      | List entity records     |
+| GET    | `/api/custom-fields`       | List custom fields      |
+| GET    | `/api/custom-field-values` | Get custom field values |
 
 ---
 
@@ -558,24 +570,40 @@ Use descriptive, lowercase class names with hyphens (BEM-like):
 
 ```css
 /* ✅ Good - Block__Element--Modifier pattern */
-.card { }
-.card-header { }
-.card-body { }
-.btn { }
-.btn-primary { }
-.btn-danger { }
-.form-control { }
-.form-group { }
-.data-table { }
-.sidebar { }
-.sidebar-item { }
-.sidebar-item.active { }
+.card {
+}
+.card-header {
+}
+.card-body {
+}
+.btn {
+}
+.btn-primary {
+}
+.btn-danger {
+}
+.form-control {
+}
+.form-group {
+}
+.data-table {
+}
+.sidebar {
+}
+.sidebar-item {
+}
+.sidebar-item.active {
+}
 
 /* ❌ Bad - Mixed cases, unclear naming */
-.Card { }
-.cardHeader { }
-.btnPrimary { }
-.BUTTON { }
+.Card {
+}
+.cardHeader {
+}
+.btnPrimary {
+}
+.BUTTON {
+}
 ```
 
 ---
@@ -585,6 +613,7 @@ Use descriptive, lowercase class names with hyphens (BEM-like):
 The project includes these security measures (in `middleware.js` and `lib/security.js`):
 
 1. **Security Headers:**
+
    - `X-Content-Type-Options: nosniff`
    - `X-Frame-Options: DENY`
    - `X-XSS-Protection: 1; mode=block`
@@ -592,6 +621,7 @@ The project includes these security measures (in `middleware.js` and `lib/securi
    - `Referrer-Policy: strict-origin-when-cross-origin`
 
 2. **Authentication:**
+
    - Password hashing with bcrypt
    - HTTP-only session cookies
    - Session expiry (30 minutes)
@@ -617,7 +647,7 @@ The project includes these security measures (in `middleware.js` and `lib/securi
 
 ## 📝 Current Context / Memory
 
-*Notes for AI about current work in progress:*
+_Notes for AI about current work in progress:_
 
 - [x] Database schema configured with Neon PostgreSQL
 - [x] Authentication system with iron-session
@@ -636,63 +666,63 @@ The project includes these security measures (in `middleware.js` and `lib/securi
 ### Fetch Data in Client Component
 
 ```jsx
-'use client';
-import { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
+"use client";
+import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 export default function ShopsPage() {
-    const [shops, setShops] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [shops, setShops] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchShops();
-    }, []);
+  useEffect(() => {
+    fetchShops();
+  }, []);
 
-    async function fetchShops() {
-        try {
-            setLoading(true);
-            const res = await fetch('/api/shops');
-            if (!res.ok) throw new Error('Failed to fetch');
-            const data = await res.json();
-            setShops(data);
-        } catch (error) {
-            console.error('Fetch error:', error);
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-        } finally {
-            setLoading(false);
-        }
+  async function fetchShops() {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/shops");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      setShops(data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      Swal.fire({ icon: "error", title: "Error", text: error.message });
+    } finally {
+      setLoading(false);
     }
+  }
 
-    if (loading) return <div className="loading">Loading...</div>;
-    
-    return (
-        <div className="card">
-            <div className="card-header">Shops ({shops.length})</div>
-            <div className="card-body">
-                <table className="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Shop Name</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {shops.map(shop => (
-                            <tr key={shop.id}>
-                                <td>{shop.id}</td>
-                                <td>{shop.shop_name}</td>
-                                <td>
-                                    <button onClick={() => handleEdit(shop)}>Edit</button>
-                                    <button onClick={() => handleDelete(shop.id)}>Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
+  if (loading) return <div className="loading">Loading...</div>;
+
+  return (
+    <div className="card">
+      <div className="card-header">Shops ({shops.length})</div>
+      <div className="card-body">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Shop Name</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shops.map((shop) => (
+              <tr key={shop.id}>
+                <td>{shop.id}</td>
+                <td>{shop.shop_name}</td>
+                <td>
+                  <button onClick={() => handleEdit(shop)}>Edit</button>
+                  <button onClick={() => handleDelete(shop.id)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 ```
 
@@ -700,39 +730,42 @@ export default function ShopsPage() {
 
 ```jsx
 const [formData, setFormData] = useState({
-    shop_name: '',
-    phone: '',
-    email: ''
+  shop_name: "",
+  phone: "",
+  email: "",
 });
 
 async function handleSubmit(e) {
-    e.preventDefault();
-    
-    // Validate
-    if (!formData.shop_name.trim()) {
-        Swal.fire({ icon: 'warning', title: 'Warning', text: 'Shop name is required' });
-        return;
+  e.preventDefault();
+
+  // Validate
+  if (!formData.shop_name.trim()) {
+    Swal.fire({
+      icon: "warning",
+      title: "Warning",
+      text: "Shop name is required",
+    });
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/shops", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Failed");
     }
-    
-    try {
-        const res = await fetch('/api/shops', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        
-        if (!res.ok) {
-            const error = await res.json();
-            throw new Error(error.message || 'Failed');
-        }
-        
-        Swal.fire({ icon: 'success', title: 'สำเร็จ!', timer: 1500 });
-        setFormData({ shop_name: '', phone: '', email: '' }); // Reset form
-        fetchShops(); // Refresh list
-        
-    } catch (error) {
-        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: error.message });
-    }
+
+    Swal.fire({ icon: "success", title: "สำเร็จ!", timer: 1500 });
+    setFormData({ shop_name: "", phone: "", email: "" }); // Reset form
+    fetchShops(); // Refresh list
+  } catch (error) {
+    Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: error.message });
+  }
 }
 ```
 
@@ -740,27 +773,27 @@ async function handleSubmit(e) {
 
 ```jsx
 async function handleDelete(id) {
-    const result = await Swal.fire({
-        icon: 'warning',
-        title: 'ยืนยันการลบ?',
-        text: 'การดำเนินการนี้ไม่สามารถย้อนกลับได้',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        confirmButtonText: 'ลบ',
-        cancelButtonText: 'ยกเลิก'
-    });
-    
-    if (result.isConfirmed) {
-        try {
-            const res = await fetch(`/api/shops?id=${id}`, { method: 'DELETE' });
-            if (!res.ok) throw new Error('Delete failed');
-            
-            Swal.fire({ icon: 'success', title: 'ลบแล้ว!', timer: 1500 });
-            fetchShops(); // Refresh list
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-        }
+  const result = await Swal.fire({
+    icon: "warning",
+    title: "ยืนยันการลบ?",
+    text: "การดำเนินการนี้ไม่สามารถย้อนกลับได้",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    confirmButtonText: "ลบ",
+    cancelButtonText: "ยกเลิก",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const res = await fetch(`/api/shops?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
+
+      Swal.fire({ icon: "success", title: "ลบแล้ว!", timer: 1500 });
+      fetchShops(); // Refresh list
+    } catch (error) {
+      Swal.fire({ icon: "error", title: "Error", text: error.message });
     }
+  }
 }
 ```
 

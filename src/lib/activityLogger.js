@@ -35,6 +35,11 @@ export async function logActivity({ userId, action, entityType, entityId = null,
         // Log error but don't throw - activity logging shouldn't break main functionality
         console.error('Failed to log activity:', error);
         return false;
+    } finally {
+        // Trigger auto-cleanup ~10% of the time (Fire-and-forget, non-blocking)
+        if (Math.random() < 0.1) {
+            cleanupOldLogs();
+        }
     }
 }
 
@@ -63,3 +68,17 @@ export const ENTITY_TYPES = {
     SETTINGS: 'การตั้งค่า',
     AUTH: 'การเข้าสู่ระบบ'
 };
+
+/**
+ * Cleanup old logs (older than 3 months)
+ * This runs with a low probability to avoid performance impact
+ */
+async function cleanupOldLogs() {
+    try {
+        // Postgres SQL to delete logs older than 3 months
+        await query(`DELETE FROM audit_logs WHERE created_at < NOW() - INTERVAL '3 months'`);
+    } catch (error) {
+        // Silent fail is acceptable for maintenance tasks
+        console.error('Failed to cleanup old audit logs:', error);
+    }
+}

@@ -134,10 +134,10 @@ export default function DashboardLayout({ children }) {
 
                         {/* Legacy Links (Restored) */}
                         <Link href="/dashboard/shops" className={`nav-link ${isActive('/dashboard/shops') ? 'active' : ''}`}>
-                            <i className="fas fa-store"></i><span>ร้านค้า (เดิม)</span>
+                            <i className="fas fa-store"></i><span>ร้านค้า</span>
                         </Link>
                         <Link href="/dashboard/licenses" className={`nav-link ${isActive('/dashboard/licenses') ? 'active' : ''}`}>
-                            <i className="fas fa-file-alt"></i><span>ใบอนุญาต (เดิม)</span>
+                            <i className="fas fa-file-alt"></i><span>ใบอนุญาต</span>
                         </Link>
 
                     </div>
@@ -151,9 +151,6 @@ export default function DashboardLayout({ children }) {
                                 </Link>
                                 <Link href="/dashboard/license-types" className={`nav-link ${isActive('/dashboard/license-types') ? 'active' : ''}`}>
                                     <i className="fas fa-tags"></i><span>ประเภทใบอนุญาต</span>
-                                </Link>
-                                <Link href="/dashboard/notifications" className={`nav-link ${isActive('/dashboard/notifications') ? 'active' : ''}`}>
-                                    <i className="fas fa-bell"></i><span>การแจ้งเตือน</span>
                                 </Link>
                                 <Link href="/dashboard/activity-logs" className={`nav-link ${isActive('/dashboard/activity-logs') ? 'active' : ''}`}>
                                     <i className="fas fa-history"></i><span>ประวัติกิจกรรม</span>

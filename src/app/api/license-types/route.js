@@ -55,18 +55,22 @@ export async function POST(request) {
             [name, description || '', parseInt(validity_days) || 365]
         );
 
+        // Result from neon is the array of rows directly
+        const newId = result?.[0]?.id;
+
         // Log activity
         const currentUser = await getCurrentUser();
         await logActivity({
             userId: currentUser?.id || null,
             action: ACTIVITY_ACTIONS.CREATE,
             entityType: ENTITY_TYPES.LICENSE_TYPE,
-            entityId: result?.rows?.[0]?.id || null,
+            entityId: newId,
             details: `เพิ่มประเภทใบอนุญาต: ${name}`
         });
 
         return NextResponse.json({ success: true, message: 'เพิ่มประเภทใบอนุญาตเรียบร้อยแล้ว' });
     } catch (err) {
+        console.error('Error in POST /api/license-types:', err);
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
     }
 }

@@ -1,7 +1,17 @@
 import { neon } from '@neondatabase/serverless';
 
 // Create Neon SQL client
-const sql = neon(process.env.DATABASE_URL);
+// Create Neon SQL client
+let sql;
+try {
+    if (!process.env.DATABASE_URL) {
+        console.warn('Warning: DATABASE_URL is not defined');
+    }
+    sql = neon(process.env.DATABASE_URL || 'postgres://user:pass@host/db'); // Fallback to prevent immediate crash
+} catch (e) {
+    console.error('Failed to initialize Neon client:', e);
+    sql = async () => []; // No-op fallback
+}
 
 // Database helper functions
 export async function query(sqlQuery, params = []) {

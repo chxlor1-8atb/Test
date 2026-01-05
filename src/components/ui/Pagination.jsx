@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import CustomSelect from './CustomSelect';
 
 /**
  * Modern Pagination Component
@@ -224,17 +225,17 @@ export default function Pagination({
                 {showItemsPerPage && onItemsPerPageChange && (
                     <div className="pagination-per-page">
                         <span className="pagination-per-page-label">แสดง</span>
-                        <select
+                        <CustomSelect
                             value={itemsPerPage}
                             onChange={(e) => onItemsPerPageChange(parseInt(e.target.value, 10))}
-                            className="pagination-per-page-select"
-                            aria-label="รายการต่อหน้า"
-                        >
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
+                            options={[
+                                { value: 10, label: '10' },
+                                { value: 20, label: '20' },
+                                { value: 50, label: '50' },
+                                { value: 100, label: '100' }
+                            ]}
+                            className="pagination-select"
+                        />
                         <span className="pagination-per-page-suffix">รายการ</span>
                     </div>
                 )}
