@@ -1,6 +1,17 @@
 
+import { cookies } from 'next/headers';
+import { getIronSession } from 'iron-session';
 import { fetchAll } from '@/lib/db';
+import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
+import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
+
+// Helper function to get current user from session
+async function getCurrentUser() {
+    const cookieStore = await cookies();
+    const session = await getIronSession(cookieStore, sessionOptions);
+    return session.userId ? { id: session.userId, username: session.username } : null;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -104,6 +115,16 @@ export async function GET(request) {
         }
 
         const csvContent = '\uFEFF' + csvRows.join('\n'); // Add BOM for Excel UTF-8 support
+
+        // Log activity
+        const currentUser = await getCurrentUser();
+        const typeNames = { licenses: 'ใบอนุญาต', shops: 'ร้านค้า', users: 'ผู้ใช้' };
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.EXPORT,
+            entityType: ENTITY_TYPES.LICENSE, // Using LICENSE as generic entity for exports
+            details: `ส่งออกข้อมูล${typeNames[type] || type} จำนวน ${data.length} รายการ`
+        });
 
         return new NextResponse(csvContent, {
             status: 200,

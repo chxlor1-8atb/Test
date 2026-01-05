@@ -103,15 +103,16 @@ svg {
 }
 
 html {
-    /* Fluid base font size for RWD - scales between 14px to 18px based on viewport */
-    font-size: clamp(87.5%, 0.5vw + 87.5%, 112.5%);
-    /* 14px → 18px */
+    /* Keep standard font-size to avoid conflicts with other pages */
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
 }
 
 .login-body {
+    /* Fluid base font size for RWD - scoped to login page only */
+    font-size: clamp(87.5%, 0.5vw + 87.5%, 112.5%);
+    /* 14px → 18px */
     font-family: 'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     min-height: 100vh;
     min-height: 100dvh;

@@ -1,5 +1,16 @@
+import { cookies } from 'next/headers';
+import { getIronSession } from 'iron-session';
 import { NextResponse } from 'next/server';
 import { executeQuery, fetchOne, fetchAll } from '@/lib/db';
+import { sessionOptions } from '@/lib/session';
+import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
+
+// Helper function to get current user from session
+async function getCurrentUser() {
+    const cookieStore = await cookies();
+    const session = await getIronSession(cookieStore, sessionOptions);
+    return session.userId ? { id: session.userId, username: session.username } : null;
+}
 
 async function sendTelegramMessage(token, chatId, message) {
     if (!token || !chatId) throw new Error('Token or Chat ID missing');
@@ -73,6 +84,15 @@ export async function POST(request) {
                  WHERE id = (SELECT id FROM notification_settings LIMIT 1)`,
                 [newToken, telegram_chat_id, days_before_expiry, is_active]
             );
+
+            // Log activity
+            const currentUser = await getCurrentUser();
+            await logActivity({
+                userId: currentUser?.id || null,
+                action: ACTIVITY_ACTIONS.UPDATE,
+                entityType: ENTITY_TYPES.SETTINGS,
+                details: `บันทึกการตั้งค่าการแจ้งเตือน (เปิดใช้งาน: ${is_active ? 'ใช่' : 'ไม่'}, แจ้งล่วงหน้า: ${days_before_expiry} วัน)`
+            });
 
             return NextResponse.json({ success: true, message: 'บันทึกการตั้งค่าเรียบร้อย' });
         }

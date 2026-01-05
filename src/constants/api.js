@@ -22,7 +22,10 @@ export const API_ENDPOINTS = {
     EXPIRING: '/api/expiring',
 
     // Notifications
-    NOTIFICATIONS: '/api/notifications'
+    NOTIFICATIONS: '/api/notifications',
+
+    // Activity Logs (Admin)
+    ACTIVITY_LOGS: '/api/activity-logs'
 };
 
 /**

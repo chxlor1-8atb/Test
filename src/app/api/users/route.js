@@ -1,7 +1,18 @@
 
+import { cookies } from 'next/headers';
+import { getIronSession } from 'iron-session';
 import { fetchAll, fetchOne, executeQuery } from '@/lib/db';
+import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
+
+// Helper function to get current user from session
+async function getCurrentUser() {
+    const cookieStore = await cookies();
+    const session = await getIronSession(cookieStore, sessionOptions);
+    return session.userId ? { id: session.userId, username: session.username } : null;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -64,10 +75,20 @@ export async function POST(request) {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        await executeQuery(
-            `INSERT INTO users (username, full_name, password, role) VALUES ($1, $2, $3, $4)`,
+        const result = await executeQuery(
+            `INSERT INTO users (username, full_name, password, role) VALUES ($1, $2, $3, $4) RETURNING id`,
             [username, full_name || '', hashedPassword, role]
         );
+
+        // Log activity
+        const currentUser = await getCurrentUser();
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.CREATE,
+            entityType: ENTITY_TYPES.USER,
+            entityId: result?.rows?.[0]?.id || null,
+            details: `เพิ่มผู้ใช้: ${username} (สิทธิ์: ${role})`
+        });
 
         return NextResponse.json({ success: true, message: 'User created successfully' });
     } catch (err) {
@@ -83,6 +104,9 @@ export async function PUT(request) {
         if (!id) {
             return NextResponse.json({ success: false, message: 'ID is required' }, { status: 400 });
         }
+
+        // Get user info for logging
+        const targetUser = await fetchOne('SELECT username FROM users WHERE id = $1', [id]);
 
         let query = 'UPDATE users SET full_name = $1, role = $2';
         let params = [full_name || '', role];
@@ -100,6 +124,16 @@ export async function PUT(request) {
 
         await executeQuery(query, params);
 
+        // Log activity
+        const currentUser = await getCurrentUser();
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.UPDATE,
+            entityType: ENTITY_TYPES.USER,
+            entityId: parseInt(id),
+            details: `แก้ไขผู้ใช้: ${targetUser?.username || id}${password ? ' (รวมเปลี่ยนรหัสผ่าน)' : ''}`
+        });
+
         return NextResponse.json({ success: true, message: 'User updated successfully' });
     } catch (err) {
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
@@ -115,9 +149,25 @@ export async function DELETE(request) {
             return NextResponse.json({ success: false, message: 'ID is required' }, { status: 400 });
         }
 
-        // Prevent deleting self? (Ideally check session user id vs id)
+        // Get user info for logging
+        const targetUser = await fetchOne('SELECT username FROM users WHERE id = $1', [id]);
+
+        // Prevent deleting self
+        const currentUser = await getCurrentUser();
+        if (currentUser?.id === parseInt(id)) {
+            return NextResponse.json({ success: false, message: 'ไม่สามารถลบบัญชีตัวเองได้' }, { status: 400 });
+        }
 
         await executeQuery('DELETE FROM users WHERE id = $1', [id]);
+
+        // Log activity
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.DELETE,
+            entityType: ENTITY_TYPES.USER,
+            entityId: parseInt(id),
+            details: `ลบผู้ใช้: ${targetUser?.username || id}`
+        });
 
         return NextResponse.json({ success: true, message: 'User deleted successfully' });
     } catch (err) {

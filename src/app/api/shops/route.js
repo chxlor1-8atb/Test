@@ -4,6 +4,14 @@ import { getIronSession } from 'iron-session';
 import { fetchAll, fetchOne, executeQuery } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
+import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
+
+// Helper function to get current user from session
+async function getCurrentUser() {
+    const cookieStore = await cookies();
+    const session = await getIronSession(cookieStore, sessionOptions);
+    return session.userId ? { id: session.userId, username: session.username } : null;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -74,11 +82,21 @@ export async function POST(request) {
             return NextResponse.json({ success: false, message: 'Shop name is required' }, { status: 400 });
         }
 
-        await executeQuery(
+        const result = await executeQuery(
             `INSERT INTO shops (shop_name, owner_name, address, phone, email, notes) 
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
             [shop_name, owner_name, address, phone, email, notes]
         );
+
+        // Log activity
+        const currentUser = await getCurrentUser();
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.CREATE,
+            entityType: ENTITY_TYPES.SHOP,
+            entityId: result?.rows?.[0]?.id || null,
+            details: `เพิ่มร้านค้า: ${shop_name}`
+        });
 
         return NextResponse.json({ success: true, message: 'เพิ่มร้านค้าเรียบร้อยแล้ว' });
     } catch (err) {
@@ -102,6 +120,16 @@ export async function PUT(request) {
             [shop_name, owner_name, address, phone, email, notes, id]
         );
 
+        // Log activity
+        const currentUser = await getCurrentUser();
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.UPDATE,
+            entityType: ENTITY_TYPES.SHOP,
+            entityId: parseInt(id),
+            details: `แก้ไขร้านค้า: ${shop_name}`
+        });
+
         return NextResponse.json({ success: true, message: 'อัปเดตร้านค้าเรียบร้อยแล้ว' });
     } catch (err) {
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
@@ -117,9 +145,22 @@ export async function DELETE(request) {
             return NextResponse.json({ success: false, message: 'ID is required' }, { status: 400 });
         }
 
+        // Get shop info before deleting for logging
+        const shop = await fetchOne('SELECT shop_name FROM shops WHERE id = $1', [id]);
+
         // Check for licenses first? Usually constraints handle this, but let's just create generic logic.
         // Assuming cascade or check logic. For now just delete.
         await executeQuery('DELETE FROM shops WHERE id = $1', [id]);
+
+        // Log activity
+        const currentUser = await getCurrentUser();
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.DELETE,
+            entityType: ENTITY_TYPES.SHOP,
+            entityId: parseInt(id),
+            details: `ลบร้านค้า: ${shop?.shop_name || id}`
+        });
 
         return NextResponse.json({ success: true, message: 'ลบร้านค้าเรียบร้อยแล้ว' });
     } catch (err) {

@@ -4,6 +4,14 @@ import { getIronSession } from 'iron-session';
 import { fetchAll, fetchOne, executeQuery } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
+import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
+
+// Helper function to get current user from session
+async function getCurrentUser() {
+    const cookieStore = await cookies();
+    const session = await getIronSession(cookieStore, sessionOptions);
+    return session.userId ? { id: session.userId, username: session.username } : null;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -100,11 +108,21 @@ export async function POST(request) {
             return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
         }
 
-        await executeQuery(
+        const result = await executeQuery(
             `INSERT INTO licenses (shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
             [shop_id, license_type_id, license_number, issue_date, expiry_date, status || 'active', notes]
         );
+
+        // Log activity
+        const currentUser = await getCurrentUser();
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.CREATE,
+            entityType: ENTITY_TYPES.LICENSE,
+            entityId: result?.rows?.[0]?.id || null,
+            details: `เพิ่มใบอนุญาตหมายเลข: ${license_number}`
+        });
 
         return NextResponse.json({ success: true, message: 'เพิ่มใบอนุญาตเรียบร้อยแล้ว' });
     } catch (err) {
@@ -128,6 +146,16 @@ export async function PUT(request) {
             [shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes, id]
         );
 
+        // Log activity
+        const currentUser = await getCurrentUser();
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.UPDATE,
+            entityType: ENTITY_TYPES.LICENSE,
+            entityId: parseInt(id),
+            details: `แก้ไขใบอนุญาตหมายเลข: ${license_number}`
+        });
+
         return NextResponse.json({ success: true, message: 'บันทึกใบอนุญาตเรียบร้อยแล้ว' });
     } catch (err) {
         return NextResponse.json({ success: false, message: err.message }, { status: 500 });
@@ -143,7 +171,20 @@ export async function DELETE(request) {
             return NextResponse.json({ success: false, message: 'ID is required' }, { status: 400 });
         }
 
+        // Get license info before deleting for logging
+        const license = await fetchOne('SELECT license_number FROM licenses WHERE id = $1', [id]);
+
         await executeQuery('DELETE FROM licenses WHERE id = $1', [id]);
+
+        // Log activity
+        const currentUser = await getCurrentUser();
+        await logActivity({
+            userId: currentUser?.id || null,
+            action: ACTIVITY_ACTIONS.DELETE,
+            entityType: ENTITY_TYPES.LICENSE,
+            entityId: parseInt(id),
+            details: `ลบใบอนุญาตหมายเลข: ${license?.license_number || id}`
+        });
 
         return NextResponse.json({ success: true, message: 'ลบใบอนุญาตเรียบร้อยแล้ว' });
     } catch (err) {

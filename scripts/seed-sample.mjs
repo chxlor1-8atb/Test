@@ -166,6 +166,37 @@ async function main() {
         }
 
         console.log(`\n✅ Created ${licenseCount} licenses.`);
+
+        // 4. Generate Audit Logs
+        console.log('Generating Audit Logs...');
+
+        // Get Users
+        const users = await sql`SELECT id FROM users`;
+        const userIds = users.map(u => u.id);
+
+        // If no users, create one or skip
+        if (userIds.length === 0) {
+            console.log('No users found. Skipping audit logs.');
+        } else {
+            const actions = ['LOGIN', 'CREATE', 'UPDATE', 'DELETE'];
+            const entities = ['LICENSE', 'SHOP', 'USER'];
+
+            for (let i = 0; i < 50; i++) { // Generate 50 logs
+                const userId = userIds[Math.floor(Math.random() * userIds.length)];
+                const action = actions[Math.floor(Math.random() * actions.length)];
+                const entity = entities[Math.floor(Math.random() * entities.length)];
+                const entityId = Math.floor(Math.random() * 100) + 1;
+
+                // Random time in last 7 days
+                const date = new Date(today.getTime() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000));
+
+                await sql`
+                    INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details, ip_address, created_at)
+                    VALUES (${userId}, ${action}, ${entity}, ${entityId}, 'System generated log', '192.168.1.1', ${date.toISOString()})
+                `;
+            }
+            console.log('✅ Generated 50 audit logs.');
+        }
         console.log('🎉 Seed Complete! Admin user: admin / 1234 (ensure you ran reset-password.js if needed)');
 
     } catch (err) {

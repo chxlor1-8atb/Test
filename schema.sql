@@ -66,6 +66,23 @@ CREATE TABLE IF NOT EXISTS notification_logs (
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Audit Logs (Activity History)
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(50) NOT NULL,
+    entity_type VARCHAR(100),
+    entity_id INTEGER,
+    details TEXT,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
+
 -- Initial Admin User (password: admin)
 INSERT INTO users (username, password, full_name, role)
 VALUES ('admin', '$2a$10$YourHashHereOrGeneratedInScript', 'Administrator', 'admin')

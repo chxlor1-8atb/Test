@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
 import Swal from 'sweetalert2';
+import PatchNotesModal, { VersionBadge } from '@/components/PatchNotesModal';
 import '../../styles/style.css';
 
 export default function DashboardLayout({ children }) {
@@ -15,6 +16,7 @@ export default function DashboardLayout({ children }) {
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState('');
     const [expiringCount, setExpiringCount] = useState(0);
+    const [showPatchNotes, setShowPatchNotes] = useState(false);
 
     useEffect(() => {
         const init = async () => {
@@ -150,6 +152,12 @@ export default function DashboardLayout({ children }) {
                                 <Link href="/dashboard/license-types" className={`nav-link ${isActive('/dashboard/license-types') ? 'active' : ''}`}>
                                     <i className="fas fa-tags"></i><span>ประเภทใบอนุญาต</span>
                                 </Link>
+                                <Link href="/dashboard/notifications" className={`nav-link ${isActive('/dashboard/notifications') ? 'active' : ''}`}>
+                                    <i className="fas fa-bell"></i><span>การแจ้งเตือน</span>
+                                </Link>
+                                <Link href="/dashboard/activity-logs" className={`nav-link ${isActive('/dashboard/activity-logs') ? 'active' : ''}`}>
+                                    <i className="fas fa-history"></i><span>ประวัติกิจกรรม</span>
+                                </Link>
                             </>
                         )}
 
@@ -189,7 +197,8 @@ export default function DashboardLayout({ children }) {
                         </button>
                         <h1 id="pageTitle">Dashboard</h1>
                     </div>
-                    <div className="header-actions">
+                    <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <VersionBadge onClick={() => setShowPatchNotes(true)} />
                         <span>{currentDate}</span>
                     </div>
                 </header>
@@ -197,6 +206,12 @@ export default function DashboardLayout({ children }) {
                     {children}
                 </div>
             </main>
+
+            {/* Patch Notes Modal */}
+            <PatchNotesModal
+                isOpen={showPatchNotes}
+                onClose={() => setShowPatchNotes(false)}
+            />
         </div>
     );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import DatePicker from './DatePicker';
 
 /**
  * EditableCell - Inline editable table cell component
@@ -124,15 +125,12 @@ export default function EditableCell({
                 );
             case 'date':
                 return (
-                    <input
-                        ref={inputRef}
-                        type="date"
+                    <DatePicker
+                        autoFocus
                         value={editValue || ''}
                         onChange={(e) => setEditValue(e.target.value)}
-                        onKeyDown={handleKeyDown}
                         onBlur={handleBlur}
-                        disabled={isSaving}
-                        className="editable-cell-input"
+                        className="editable-cell-date-picker"
                     />
                 );
             case 'number':

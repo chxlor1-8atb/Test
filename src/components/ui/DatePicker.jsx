@@ -12,7 +12,10 @@ export default function DatePicker({
     name,
     placeholder = 'เลือกวันที่',
     disabled = false,
-    lang = 'th' // 'th' or 'en'
+    lang = 'th', // 'th' or 'en'
+    className = '',
+    onBlur,
+    autoFocus = false
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
@@ -22,14 +25,33 @@ export default function DatePicker({
     const DAYS = lang === 'th' ? DAYS_TH : DAYS_EN;
 
     useEffect(() => {
+        if (autoFocus && !disabled) {
+            setIsOpen(true);
+        }
+    }, [autoFocus, disabled]);
+
+    useEffect(() => {
         function handleClickOutside(event) {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
                 setIsOpen(false);
+                // Call onBlur when clicking outside if currently open or purely based on focus logic?
+                // Actually the onBlur handler on div handles focus loss. 
+                // But clicking outside closes the dropdown.
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Handle focus loss
+    const handleBlur = (e) => {
+        if (onBlur && wrapperRef.current && !wrapperRef.current.contains(e.relatedTarget)) {
+            // Delay slightly to allow click events to process
+            setTimeout(() => {
+                onBlur(e);
+            }, 100);
+        }
+    };
 
     // Get days in month
     const getDaysInMonth = (year, month) => {
@@ -55,7 +77,13 @@ export default function DatePicker({
         if (disabled) return;
 
         const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
-        const formattedDate = newDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+        // Adjust for timezone offset to prevent off-by-one errors when converting to string
+        // Actually toISOString() is UTC. We want YYYY-MM-DD in local?
+        // Let's use simple formatting to avoid TZ issues
+        const year = newDate.getFullYear();
+        const month = String(newDate.getMonth() + 1).padStart(2, '0');
+        const d = String(day).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${d}`;
 
         const event = {
             target: {
@@ -108,7 +136,10 @@ export default function DatePicker({
                 <div
                     key={day}
                     className={`datepicker-day ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
-                    onClick={() => handleSelectDate(day)}
+                    onClick={(e) => {
+                        e.stopPropagation(); // Prevent bubbling causing issues
+                        handleSelectDate(day);
+                    }}
                 >
                     {day}
                 </div>
@@ -120,8 +151,11 @@ export default function DatePicker({
 
     return (
         <div
-            className={`datepicker-wrapper ${disabled ? 'disabled' : ''}`}
+            className={`datepicker-wrapper ${disabled ? 'disabled' : ''} ${className}`}
             ref={wrapperRef}
+            tabIndex={disabled ? -1 : 0}
+            onBlur={handleBlur}
+            style={{ outline: 'none' }} // Remove focus outline
         >
             {/* Input Trigger */}
             <div
@@ -171,7 +205,10 @@ export default function DatePicker({
                         <button
                             type="button"
                             className="datepicker-set-btn"
-                            onClick={() => setIsOpen(false)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOpen(false);
+                            }}
                         >
                             ตกลง
                         </button>

@@ -4,6 +4,7 @@ import { getIronSession } from 'iron-session';
 import { fetchOne } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
+import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,6 +94,14 @@ async function handleLogin(request) {
     session.loginTime = Date.now();
     await session.save();
 
+    // Log login activity
+    await logActivity({
+        userId: user.id,
+        action: ACTIVITY_ACTIONS.LOGIN,
+        entityType: ENTITY_TYPES.AUTH,
+        details: `เข้าสู่ระบบด้วยชื่อผู้ใช้: ${user.username}`
+    });
+
     return NextResponse.json({
         success: true,
         message: 'เข้าสู่ระบบสำเร็จ',
@@ -108,6 +117,17 @@ async function handleLogin(request) {
 async function handleLogout() {
     const cookieStore = await cookies();
     const session = await getIronSession(cookieStore, sessionOptions);
+
+    // Log logout activity before destroying session
+    if (session.userId) {
+        await logActivity({
+            userId: session.userId,
+            action: ACTIVITY_ACTIONS.LOGOUT,
+            entityType: ENTITY_TYPES.AUTH,
+            details: `ออกจากระบบ: ${session.username}`
+        });
+    }
+
     session.destroy();
 
     return NextResponse.json({ success: true, message: 'ออกจากระบบสำเร็จ' });

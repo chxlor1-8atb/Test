@@ -22,7 +22,8 @@ export default function Modal({
     title,
     children,
     className = '',
-    showCloseButton = true
+    showCloseButton = true,
+    size = '' // 'lg' for large, 'xl' for extra large
 }) {
     // Handle escape key
     const handleKeyDown = useCallback((e) => {
@@ -63,6 +64,7 @@ export default function Modal({
             <div
                 className={`modal show ${className}`.trim()}
                 onClick={(e) => e.stopPropagation()}
+                style={size === 'lg' ? { maxWidth: '700px', width: '90%' } : size === 'xl' ? { maxWidth: '900px', width: '95%' } : {}}
             >
                 <div className="modal-header">
                     <h3 id="modal-title" className="modal-title">{title}</h3>
