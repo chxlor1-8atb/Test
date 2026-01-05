@@ -2,16 +2,9 @@ const { neon } = require('@neondatabase/serverless');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.join(process.cwd(), '.env.local') });
 
-// Load env locally
-const envPath = path.join(process.cwd(), '.env.local');
-let databaseUrl = process.env.DATABASE_URL;
-
-if (fs.existsSync(envPath)) {
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    const match = envContent.match(/DATABASE_URL=["']?([^"'\n]+)["']?/);
-    if (match) databaseUrl = match[1];
-}
+const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
     console.error('DATABASE_URL not found');

@@ -1,26 +1,11 @@
-
 import { neon } from '@neondatabase/serverless';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
 
-// Load env
-const envPath = path.join(process.cwd(), '.env.local');
-let env = {};
-if (fs.existsSync(envPath)) {
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    envContent.split('\n').forEach(line => {
-        const match = line.match(/^([^=]+)=(.*)$/);
-        if (match) {
-            let value = match[2].trim();
-            if (value.startsWith('"') && value.endsWith('"')) {
-                value = value.slice(1, -1);
-            }
-            env[match[1]] = value;
-        }
-    });
-}
+dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
-const DATABASE_URL = env.DATABASE_URL || process.env.DATABASE_URL;
+const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
     console.error("❌ No DATABASE_URL found.");

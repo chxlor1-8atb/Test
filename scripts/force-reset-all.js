@@ -1,23 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const { neon } = require('@neondatabase/serverless');
+require('dotenv').config({ path: path.join(process.cwd(), '.env.local') });
 
-// Load env
-const envPath = path.join(process.cwd(), '.env.local');
-const envContent = fs.readFileSync(envPath, 'utf8');
-const env = {};
-envContent.split('\n').forEach(line => {
-    const match = line.match(/^([^=]+)=(.*)$/);
-    if (match) {
-        let value = match[2].trim();
-        if (value.startsWith('"') && value.endsWith('"')) {
-            value = value.slice(1, -1);
-        }
-        env[match[1]] = value;
-    }
-});
-
-const sql = neon(env.DATABASE_URL);
+const sql = neon(process.env.DATABASE_URL);
 
 async function main() {
     try {
