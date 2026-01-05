@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 /**
  * Modal Component
@@ -9,6 +10,7 @@ import { useEffect, useCallback } from 'react';
  * - Backdrop click to close
  * - Escape key to close
  * - Focus trap (accessibility)
+ * - React Portal (renders outside parent DOM hierarchy)
  * 
  * @param {boolean} isOpen - Whether modal is visible
  * @param {function} onClose - Callback when modal should close
@@ -25,6 +27,13 @@ export default function Modal({
     showCloseButton = true,
     size = '' // 'lg' for large, 'xl' for extra large
 }) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+
     // Handle escape key
     const handleKeyDown = useCallback((e) => {
         if (e.key === 'Escape') {
@@ -44,7 +53,7 @@ export default function Modal({
         };
     }, [isOpen, handleKeyDown]);
 
-    if (!isOpen) return null;
+    if (!mounted || !isOpen) return null;
 
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
@@ -52,7 +61,7 @@ export default function Modal({
         }
     };
 
-    return (
+    const modalContent = (
         <div
             className="modal-overlay show"
             style={{ display: 'flex' }}
@@ -84,4 +93,6 @@ export default function Modal({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }

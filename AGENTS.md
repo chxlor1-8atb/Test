@@ -134,9 +134,8 @@
 │   └── style-responsive.css       # Responsive utilities
 │
 
-```
-
 ---
+
 
 ## 📊 Database Schema
 
@@ -611,9 +610,8 @@ The project includes these security measures (in `middleware.js` and `lib/securi
 4. ❌ **Inline Styles** - Use CSS classes
 5. ❌ **SQL String Concatenation** - Use parameterized queries
 6. ❌ **console.log in production** - Use proper error handling
-
-8. ❌ **Using mysql2 syntax** - Use PostgreSQL $1, $2 params
-9. ❌ **Hardcoding credentials** - Use environment variables
+7. ❌ **Using mysql2 syntax** - Use PostgreSQL $1, $2 params
+8. ❌ **Hardcoding credentials** - Use environment variables
 
 ---
 
