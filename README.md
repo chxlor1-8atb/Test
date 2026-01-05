@@ -1,4 +1,4 @@
-# Web Development Project - [ระบบจัดการใบอนุญาติร้านค้า]
+# Web Development Project - ระบบจัดการใบอนุญาติร้านค้า
 
 ## 🎯 MANDATORY RULES: Full-Stack Parallel Execution
 
@@ -674,4 +674,4 @@ export async function createPost(formData: FormData) {
 **Last Updated:** 2026-01-02
 **Platform:** Antigravity IDE + Vercel
 **Version:** 1.0.0
-**Maintainer:** [ชื่อของคุณ]
+**Maintainer:** [chaiwat]
