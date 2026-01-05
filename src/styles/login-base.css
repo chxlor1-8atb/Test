@@ -601,13 +601,14 @@ html {
     width: 50px;
     height: 100% !important;
     /* Override global svg { height: auto } rule */
-    max-height: 100%;
-    /* Prevent overflow */
+    max-height: none;
+    min-height: 100%;
     z-index: 5;
-    overflow: hidden;
+    overflow: visible;
     pointer-events: none;
     transform: translateX(-100%);
     /* Shift left so it sits at the seam between left and right panels */
+    display: block;
 }
 
 .card-left__content {
