@@ -1,4 +1,4 @@
-# Web Development Project - [ระบบจัดการใบอนุญาติร้านค้า]
+# Web Development Project - ระบบจัดการใบอนุญาติร้านค้า
 
 ## 🎯 MANDATORY RULES: Full-Stack Parallel Execution
 
