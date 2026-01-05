@@ -626,12 +626,16 @@ html {
     flex-direction: column;
     justify-content: center;
     position: relative;
-    background: rgba(255, 255, 255, 0.9);
+    /* Warm cream background that blends with the gold theme */
+    background: linear-gradient(180deg,
+            rgba(255, 251, 245, 0.98) 0%,
+            rgba(255, 249, 240, 0.95) 50%,
+            rgba(254, 243, 224, 0.9) 100%);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
-/* Mobile Stacked Layout - Remove gap between sections */
+/* Mobile Stacked Layout - Seamless transition between sections */
 @media (max-width: 899px) {
     .card-left {
         border-radius: 0;
@@ -639,7 +643,12 @@ html {
 
     .card-right {
         border-radius: 0;
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        /* Smooth gradient transition that blends with card-left */
+        background: linear-gradient(180deg,
+                rgba(253, 240, 200, 0.95) 0%,
+                rgba(255, 250, 240, 0.98) 30%,
+                rgba(255, 255, 255, 0.98) 100%);
+        border-top: none;
     }
 }
 
