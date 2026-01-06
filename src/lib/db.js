@@ -1,13 +1,17 @@
-import { neon } from '@neondatabase/serverless';
+import { neon, neonConfig } from '@neondatabase/serverless';
 
-// Create Neon SQL client
+// ===== Neon Performance Optimization =====
+// Enable connection caching for faster subsequent queries
+neonConfig.fetchConnectionCache = true;
+
 // Create Neon SQL client
 let sql;
 try {
     if (!process.env.DATABASE_URL) {
         console.warn('Warning: DATABASE_URL is not defined');
     }
-    sql = neon(process.env.DATABASE_URL || 'postgres://user:pass@host/db'); // Fallback to prevent immediate crash
+    // Initialize with optimized settings
+    sql = neon(process.env.DATABASE_URL || 'postgres://user:pass@host/db');
 } catch (e) {
     console.error('Failed to initialize Neon client:', e);
     sql = async () => []; // No-op fallback

@@ -1,5 +1,6 @@
 import './globals.css';
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import { Inter, Noto_Sans_Thai } from 'next/font/google';
 
 // Optimize fonts with next/font - eliminates font CLS
@@ -63,7 +64,9 @@ export default function RootLayout({ children }) {
             <body>
                 {children}
                 <SpeedInsights />
+                <Analytics />
             </body>
         </html>
     );
 }
+

@@ -1,12 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import Script from 'next/script';
-import Swal from 'sweetalert2';
-import PatchNotesModal, { VersionBadge } from '@/components/PatchNotesModal';
+import dynamic from 'next/dynamic';
 import '../../styles/style.css';
+
+// Lazy load heavy components to reduce initial bundle
+const PatchNotesModal = dynamic(
+    () => import('@/components/PatchNotesModal').then(mod => ({ default: mod.default })),
+    { ssr: false }
+);
+
+const VersionBadge = dynamic(
+    () => import('@/components/PatchNotesModal').then(mod => ({ default: mod.VersionBadge })),
+    { ssr: false, loading: () => <span className="version-badge-placeholder" /> }
+);
 
 export default function DashboardLayout({ children }) {
     const router = useRouter();
@@ -76,6 +85,9 @@ export default function DashboardLayout({ children }) {
     };
 
     const handleLogout = async () => {
+        // Dynamic import Swal to reduce initial bundle
+        const Swal = (await import('sweetalert2')).default;
+        
         const result = await Swal.fire({
             title: 'ยืนยันการออกจากระบบ',
             text: "คุณต้องการออกจากระบบหรือไม่?",

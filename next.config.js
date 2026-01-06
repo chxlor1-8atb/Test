@@ -3,22 +3,31 @@ const nextConfig = {
     // Enable React strict mode for better development
     reactStrictMode: true,
 
-    // Optimize images
+    // Optimize images (reduce bandwidth & CPU)
     images: {
         formats: ['image/avif', 'image/webp'],
         minimumCacheTTL: 60,
+        deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+        imageSizes: [16, 32, 48, 64, 96, 128, 256],
     },
 
     // Compiler optimizations
     compiler: {
-        // Remove console.log in production
+        // Remove console.log in production (reduce bundle & security)
         removeConsole: process.env.NODE_ENV === 'production',
     },
 
-    // Experimental optimizations
+    // Experimental optimizations (reduce bundle size significantly)
     experimental: {
-        // Optimize package imports
-        optimizePackageImports: ['chart.js', 'react-chartjs-2', 'sweetalert2'],
+        // Optimize package imports - tree shake unused exports
+        optimizePackageImports: [
+            'chart.js', 
+            'react-chartjs-2', 
+            'sweetalert2',
+            'bcryptjs',
+            '@neondatabase/serverless',
+            'iron-session'
+        ],
     },
 
     // Headers for caching static assets
