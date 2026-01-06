@@ -5451,15 +5451,18 @@ tr:focus-within:has(.editable-cell) {
 @media (max-width: 768px) {
 
     /* Make tables scroll horizontally */
-    .table-container {
+    .table-container,
+    .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         margin: 0 -1rem;
         padding: 0 1rem;
+        width: calc(100% + 2rem); /* Ensure full width relative to container */
     }
 
     .data-table {
         min-width: 600px;
+        width: 100%; /* Ensure table takes up space */
     }
 
     .data-table th,
