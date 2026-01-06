@@ -6386,3 +6386,35 @@ img {
     opacity: 0.6;
     pointer-events: none;
 }
+
+/* Modal Scroll Fix */
+.modal {
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh; /* Prevent modal from exceeding viewport height */
+}
+
+.modal-body {
+    overflow-y: auto; /* Enable scrolling for body content */
+    flex: 1; /* Allow body to take available space */
+    padding-right: 5px; /* Prevent scrollbar from overlapping content slightly */
+}
+
+/* Custom scrollbar for modal body */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}

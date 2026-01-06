@@ -88,7 +88,22 @@ INSERT INTO users (username, password, full_name, role)
 VALUES ('admin', '$2a$10$YourHashHereOrGeneratedInScript', 'Administrator', 'admin')
 ON CONFLICT (username) DO NOTHING;
 
--- Initial Notification Settings
 INSERT INTO notification_settings (id, days_before_expiry, is_active)
 VALUES (1, 30, false)
 ON CONFLICT (id) DO NOTHING;
+
+-- V2: Dynamic Schema Support
+ALTER TABLE shops ADD COLUMN IF NOT EXISTS custom_fields JSONB DEFAULT '{}';
+ALTER TABLE licenses ADD COLUMN IF NOT EXISTS custom_fields JSONB DEFAULT '{}';
+
+CREATE TABLE IF NOT EXISTS schema_definitions (
+    id SERIAL PRIMARY KEY,
+    table_name VARCHAR(50) NOT NULL,
+    column_key VARCHAR(50) NOT NULL,
+    column_label VARCHAR(100) NOT NULL,
+    column_type VARCHAR(20) DEFAULT 'text',
+    is_required BOOLEAN DEFAULT false,
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(table_name, column_key)
+);

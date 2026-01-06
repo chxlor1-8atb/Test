@@ -102,16 +102,16 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes } = body;
+        const { shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes, custom_fields } = body;
 
         if (!shop_id || !license_type_id || !license_number) {
             return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
         }
 
         const result = await executeQuery(
-            `INSERT INTO licenses (shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-            [shop_id, license_type_id, license_number, issue_date, expiry_date, status || 'active', notes]
+            `INSERT INTO licenses (shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes, custom_fields) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+            [shop_id, license_type_id, license_number, issue_date, expiry_date, status || 'active', notes, JSON.stringify(custom_fields || {})]
         );
 
         // Log activity
@@ -133,7 +133,7 @@ export async function POST(request) {
 export async function PUT(request) {
     try {
         const body = await request.json();
-        const { id, shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes } = body;
+        const { id, shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes, custom_fields } = body;
 
         if (!id || !shop_id || !license_type_id) {
             return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
@@ -141,9 +141,9 @@ export async function PUT(request) {
 
         await executeQuery(
             `UPDATE licenses 
-             SET shop_id = $1, license_type_id = $2, license_number = $3, issue_date = $4, expiry_date = $5, status = $6, notes = $7
-             WHERE id = $8`,
-            [shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes, id]
+             SET shop_id = $1, license_type_id = $2, license_number = $3, issue_date = $4, expiry_date = $5, status = $6, notes = $7, custom_fields = $8
+             WHERE id = $9`,
+            [shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes, JSON.stringify(custom_fields || {}), id]
         );
 
         // Log activity

@@ -76,16 +76,16 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { shop_name, owner_name, address, phone, email, notes } = body;
+        const { shop_name, owner_name, address, phone, email, notes, custom_fields } = body;
 
         if (!shop_name) {
             return NextResponse.json({ success: false, message: 'Shop name is required' }, { status: 400 });
         }
 
         const result = await executeQuery(
-            `INSERT INTO shops (shop_name, owner_name, address, phone, email, notes) 
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-            [shop_name, owner_name, address, phone, email, notes]
+            `INSERT INTO shops (shop_name, owner_name, address, phone, email, notes, custom_fields) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            [shop_name, owner_name, address, phone, email, notes, JSON.stringify(custom_fields || {})]
         );
 
         // Log activity
@@ -107,7 +107,7 @@ export async function POST(request) {
 export async function PUT(request) {
     try {
         const body = await request.json();
-        const { id, shop_name, owner_name, address, phone, email, notes } = body;
+        const { id, shop_name, owner_name, address, phone, email, notes, custom_fields } = body;
 
         if (!id || !shop_name) {
             return NextResponse.json({ success: false, message: 'ID and Shop name are required' }, { status: 400 });
@@ -115,9 +115,9 @@ export async function PUT(request) {
 
         await executeQuery(
             `UPDATE shops 
-             SET shop_name = $1, owner_name = $2, address = $3, phone = $4, email = $5, notes = $6
-             WHERE id = $7`,
-            [shop_name, owner_name, address, phone, email, notes, id]
+             SET shop_name = $1, owner_name = $2, address = $3, phone = $4, email = $5, notes = $6, custom_fields = $7
+             WHERE id = $8`,
+            [shop_name, owner_name, address, phone, email, notes, JSON.stringify(custom_fields || {}), id]
         );
 
         // Log activity
