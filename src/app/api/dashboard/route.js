@@ -1,8 +1,13 @@
 import { cookies } from 'next/headers';
 import { getIronSession } from 'iron-session';
-import { fetchAll, fetchOne } from '@/lib/db';
+import { fetchAll } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
+import { 
+    getCachedDashboardStats, 
+    getCachedLicenseBreakdown, 
+    getCachedExpiringCount 
+} from '@/lib/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,18 +49,8 @@ export async function GET(request) {
 }
 
 async function getStats() {
-    // Optimized: Fetch all stats in a single database round-trip
-    const query = `
-        SELECT 
-            (SELECT COUNT(*) FROM shops) as total_shops,
-            (SELECT COUNT(*) FROM licenses) as total_licenses,
-            (SELECT COUNT(*) FROM licenses WHERE status = 'active' AND expiry_date >= CURRENT_DATE) as active_licenses,
-            (SELECT COUNT(*) FROM licenses WHERE status = 'expired' OR expiry_date < CURRENT_DATE) as expired_licenses,
-            (SELECT COUNT(*) FROM licenses WHERE status = 'active' AND expiry_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days') as expiring_soon,
-            (SELECT COUNT(*) FROM users) as total_users
-    `;
-
-    const result = await fetchOne(query);
+    // ===== Using Data Cache =====
+    const result = await getCachedDashboardStats();
 
     return NextResponse.json({
         success: true,
@@ -74,19 +69,8 @@ async function getStats() {
 }
 
 async function getLicenseBreakdown() {
-    const breakdown = await fetchAll(
-        `SELECT 
-            lt.id,
-            lt.name as type_name,
-            COUNT(l.id) as total_count,
-            SUM(CASE WHEN l.status = 'active' AND l.expiry_date >= CURRENT_DATE THEN 1 ELSE 0 END) as active_count,
-            SUM(CASE WHEN l.status = 'active' AND l.expiry_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days' THEN 1 ELSE 0 END) as expiring_count,
-            SUM(CASE WHEN l.status = 'expired' OR l.expiry_date < CURRENT_DATE THEN 1 ELSE 0 END) as expired_count
-         FROM license_types lt
-         LEFT JOIN licenses l ON lt.id = l.license_type_id
-         GROUP BY lt.id, lt.name
-         ORDER BY total_count DESC`
-    );
+    // ===== Using Data Cache =====
+    const breakdown = await getCachedLicenseBreakdown();
 
     return NextResponse.json({
         success: true,
@@ -96,17 +80,18 @@ async function getLicenseBreakdown() {
 }
 
 async function getExpiringCount() {
-    const result = await fetchOne(
-        "SELECT COUNT(*) as count FROM licenses WHERE status = 'active' AND expiry_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'"
-    );
+    // ===== Using Data Cache =====
+    const count = await getCachedExpiringCount();
+    
     return NextResponse.json({
         success: true,
-        count: parseInt(result?.count || 0)
+        count
     });
 }
 
 async function getRecentActivity(session) {
     // Security check: Only admins can see activity logs
+    // Note: Activity logs are NOT cached (real-time data)
     if (session.role !== 'admin') {
         return NextResponse.json({ success: true, activities: [] });
     }
@@ -120,3 +105,4 @@ async function getRecentActivity(session) {
     `);
     return NextResponse.json({ success: true, activities });
 }
+
