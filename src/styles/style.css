@@ -6418,3 +6418,33 @@ img {
 .modal-body::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
 }
+
+/* Responsive Modal Adjustments */
+@media (max-width: 991.98px) {
+    .modal {
+        width: 90% !important;
+        max-width: 700px !important;
+        max-height: 85vh;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .modal {
+        width: 95% !important;
+        max-width: 100% !important;
+        max-height: 90vh; /* More height on mobile */
+        margin: 0.5rem auto;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+    
+    .modal-header .modal-title {
+        font-size: 1.1rem;
+    }
+}

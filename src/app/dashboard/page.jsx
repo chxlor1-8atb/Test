@@ -5,14 +5,7 @@ import dynamic from 'next/dynamic';
 import { API_ENDPOINTS } from '@/constants';
 import { formatThaiDateTime, getInitial } from '@/utils/formatters';
 
-// Lazy load Chart.js components to reduce initial bundle
-const ChartComponents = dynamic(
-    () => import('@/components/DashboardCharts'),
-    {
-        ssr: false,
-        loading: () => <ChartLoadingPlaceholder />
-    }
-);
+
 
 // Constants
 const STAT_CARDS = [
@@ -35,7 +28,6 @@ const ACTION_BADGE_MAP = {
  */
 export default function DashboardPage() {
     const [stats, setStats] = useState(null);
-    const [breakdown, setBreakdown] = useState([]);
     const [recentActivity, setRecentActivity] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -61,19 +53,17 @@ export default function DashboardPage() {
 
     const fetchDashboardData = useCallback(async () => {
         try {
-            const [statsRes, breakdownRes, recentRes] = await Promise.all([
+            const [statsRes, recentRes] = await Promise.all([
                 fetch(API_ENDPOINTS.DASHBOARD_STATS),
-                fetch(API_ENDPOINTS.DASHBOARD_BREAKDOWN),
                 fetch(API_ENDPOINTS.DASHBOARD_ACTIVITY)
             ]);
 
             const statsData = await statsRes.json();
-            const breakdownData = await breakdownRes.json();
             const activityData = await safeParseJson(recentRes);
 
             if (statsData.success) setStats(statsData.stats);
-            if (breakdownData.success || breakdownData.breakdown) {
-                setBreakdown(breakdownData.breakdown || []);
+            if (activityData?.success) {
+                setRecentActivity(activityData.activities || []);
             }
             if (activityData?.success) {
                 setRecentActivity(activityData.activities || []);
@@ -92,7 +82,7 @@ export default function DashboardPage() {
     return (
         <div>
             <StatsGrid stats={stats} />
-            <ChartComponents breakdown={breakdown} />
+
             {user?.role === 'admin' && <RecentActivityCard activities={recentActivity} />}
         </div>
     );
@@ -237,35 +227,11 @@ function DashboardSkeleton() {
                     </div>
                 ))}
             </div>
-            <div className="card chart-card" style={{ marginTop: '1.5rem', minHeight: '350px' }}>
-                <div className="card-header">
-                    <div className="skeleton-cell skeleton-animate" style={{ width: '200px', height: '24px' }} />
-                </div>
-                <div className="card-body" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="loading-spinner">
-                        <div className="spinner-ring" />
-                        <div className="spinner-ring" />
-                        <div className="spinner-ring" />
-                        <div className="spinner-dot" />
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }
 
-/**
- * ChartLoadingPlaceholder Component
- */
-function ChartLoadingPlaceholder() {
-    return (
-        <div className="chart-placeholder" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="loading-spinner" style={{ width: '40px', height: '40px' }}>
-                <div className="spinner-ring" />
-            </div>
-        </div>
-    );
-}
+
 
 /**
  * Safe JSON parser
