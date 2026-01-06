@@ -8,6 +8,7 @@ import { showSuccess, showError, confirmDelete } from '@/utils/alerts';
 // UI Components
 import Pagination from '@/components/ui/Pagination';
 import EditableCell from '@/components/ui/EditableCell';
+import EditableHeader from '@/components/ui/EditableHeader';
 import Modal from '@/components/ui/Modal';
 import FilterRow, { SearchInput } from '@/components/ui/FilterRow';
 import TableSkeleton from '@/components/ui/TableSkeleton';
@@ -23,6 +24,15 @@ const INITIAL_FORM_DATA = {
     notes: ''
 };
 
+// Default column names
+const DEFAULT_COLUMN_NAMES = {
+    shop_name: 'ชื่อร้าน',
+    owner_name: 'เจ้าของ',
+    phone: 'โทรศัพท์',
+    license_count: 'ใบอนุญาต',
+    actions: 'ลบ'
+};
+
 /**
  * ShopsPage Component
  * Manages shop listing with CRUD operations
@@ -36,6 +46,29 @@ export default function ShopsPage() {
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+    
+    // Editable column names (stored in localStorage)
+    const [columnNames, setColumnNames] = useState(DEFAULT_COLUMN_NAMES);
+
+    // Load saved column names from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem('shops_column_names');
+        if (saved) {
+            try {
+                setColumnNames({ ...DEFAULT_COLUMN_NAMES, ...JSON.parse(saved) });
+            } catch (e) {
+                console.error('Failed to load column names:', e);
+            }
+        }
+    }, []);
+
+    // Save column name change
+    const handleColumnNameSave = (fieldKey, newName) => {
+        const updated = { ...columnNames, [fieldKey]: newName };
+        setColumnNames(updated);
+        localStorage.setItem('shops_column_names', JSON.stringify(updated));
+        showSuccess('บันทึกชื่อคอลัมน์เรียบร้อยแล้ว');
+    };
 
     // Fetch shops when dependencies change
     useEffect(() => {
@@ -206,11 +239,28 @@ export default function ShopsPage() {
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>ชื่อร้าน</th>
-                                    <th>เจ้าของ</th>
-                                    <th>โทรศัพท์</th>
-                                    <th className="text-center">ใบอนุญาต</th>
-                                    <th className="text-center" style={{ width: '80px' }}>ลบ</th>
+                                    <EditableHeader
+                                        value={columnNames.shop_name}
+                                        fieldKey="shop_name"
+                                        onSave={handleColumnNameSave}
+                                    />
+                                    <EditableHeader
+                                        value={columnNames.owner_name}
+                                        fieldKey="owner_name"
+                                        onSave={handleColumnNameSave}
+                                    />
+                                    <EditableHeader
+                                        value={columnNames.phone}
+                                        fieldKey="phone"
+                                        onSave={handleColumnNameSave}
+                                    />
+                                    <EditableHeader
+                                        value={columnNames.license_count}
+                                        fieldKey="license_count"
+                                        onSave={handleColumnNameSave}
+                                        className="text-center"
+                                    />
+                                    <th className="text-center" style={{ width: '80px' }}>{columnNames.actions}</th>
                                 </tr>
                             </thead>
                             <tbody>

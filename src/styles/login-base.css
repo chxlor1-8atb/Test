@@ -9,12 +9,15 @@
    ==================================== */
 
 :root {
-    /* === COLOR SYSTEM === */
-    --primary: #D97706;
-    --primary-dark: #B45309;
-    --primary-light: #FBBF24;
-    --primary-glow: rgba(217, 119, 6, 0.2);
-    --primary-accent: #F59E0B;
+    /* === COLOR SYSTEM - SCOPED TO LOGIN === */
+    /* Note: These are login-specific variables, dashboard uses style.css values */
+    
+    /* LOGIN-SPECIFIC: Using --login- prefix to avoid conflicts */
+    --login-primary: #D97706;
+    --login-primary-dark: #B45309;
+    --login-primary-light: #FBBF24;
+    --login-primary-glow: rgba(217, 119, 6, 0.2);
+    --login-primary-accent: #F59E0B;
 
     --bg-main: #FAFAF9;
     --bg-card: #FFFFFF;
@@ -722,7 +725,7 @@ html {
 }
 
 .hero__title--highlight {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--login-primary) 0%, var(--login-primary-dark) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -737,7 +740,7 @@ html {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--primary-glow), transparent);
+    background: linear-gradient(90deg, var(--login-primary-glow), transparent);
     border-radius: 2px;
     transform: translateY(4px);
 }
@@ -945,9 +948,9 @@ html {
 .input-field:focus {
     outline: none;
     background: var(--bg-input);
-    border-color: var(--primary);
+    border-color: var(--login-primary);
     box-shadow:
-        0 0 0 3px var(--primary-glow),
+        0 0 0 3px var(--login-primary-glow),
         0 8px 20px rgba(217, 119, 6, 0.12);
     transform: translateY(-2px);
 }
@@ -973,7 +976,7 @@ html {
     left: 0.875rem;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--login-primary);
     background: var(--bg-card);
     padding: 0.1875rem 0.625rem;
     border-radius: 6px;
@@ -991,12 +994,12 @@ html {
 }
 
 .input-field:hover~.input-icon {
-    color: var(--primary);
+    color: var(--login-primary);
     transform: translateY(-50%) scale(1.1);
 }
 
 .input-field:focus~.input-icon {
-    color: var(--primary);
+    color: var(--login-primary);
     transform: translateY(-50%) scale(1.15);
     animation: iconPulse 0.4s ease;
 }
@@ -1039,7 +1042,7 @@ html {
 
 .password-toggle:hover {
     background: transparent;
-    color: var(--primary);
+    color: var(--login-primary);
     transform: translateY(-50%) scale(1.05);
 }
 
@@ -1120,8 +1123,8 @@ html {
 }
 
 .remember-me__checkbox:checked+.remember-me__checkmark {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: var(--login-primary);
+    border-color: var(--login-primary);
 }
 
 .remember-me__checkbox:checked+.remember-me__checkmark::after {
@@ -1129,11 +1132,11 @@ html {
 }
 
 .remember-me__checkbox:focus+.remember-me__checkmark {
-    box-shadow: 0 0 0 3px var(--primary-glow);
+    box-shadow: 0 0 0 3px var(--login-primary-glow);
 }
 
 .remember-me__label:hover .remember-me__checkmark {
-    border-color: var(--primary);
+    border-color: var(--login-primary);
 }
 
 .remember-me__text {
@@ -1164,7 +1167,7 @@ html {
     width: 100%;
     padding: 1.1rem 2.5rem;
     /* Simple gradient background */
-    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 50%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--login-primary-light) 0%, var(--login-primary) 50%, var(--login-primary-dark) 100%);
     border: none;
     /* Pill shape - fully rounded */
     border-radius: 9999px;
@@ -1214,7 +1217,7 @@ html {
     position: absolute;
     inset: -3px;
     border-radius: 9999px;
-    background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+    background: linear-gradient(135deg, var(--login-primary-light), var(--login-primary-dark));
     z-index: -1;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -1240,7 +1243,7 @@ html {
 }
 
 .btn-submit:hover {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--login-primary) 0%, var(--login-primary-dark) 100%);
     transform: translateY(-3px);
     box-shadow: 0 8px 30px rgba(217, 119, 6, 0.45);
 }
@@ -1310,7 +1313,7 @@ html {
     padding: 0;
     border-radius: 50%;
     margin: 0;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--login-primary) 0%, var(--login-primary-dark) 100%);
     pointer-events: none;
     transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     box-shadow:
