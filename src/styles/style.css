@@ -5461,8 +5461,8 @@ tr:focus-within:has(.editable-cell) {
     }
 
     .data-table {
-        min-width: 600px;
-        width: 100%; /* Ensure table takes up space */
+        min-width: auto; /* Let content define width, don't force stretch */
+        width: 100%;
     }
 
     .data-table th,
@@ -5504,6 +5504,10 @@ tr:focus-within:has(.editable-cell) {
     .badge {
         padding: 0.25rem 0.5rem;
         font-size: 0.6875rem;
+    }
+
+    .hide-on-mobile {
+        display: none !important;
     }
 
     /* Filter row responsive */

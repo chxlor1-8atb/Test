@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { API_ENDPOINTS } from '@/constants';
 import { formatThaiDateTime, getInitial } from '@/utils/formatters';
+import Modal from '@/components/ui/Modal';
 
 
 
@@ -128,52 +129,176 @@ function StatCard({ value, label, icon, variant }) {
  * RecentActivityCard Component
  */
 function RecentActivityCard({ activities }) {
+    const [selectedLog, setSelectedLog] = useState(null);
+    const [filter, setFilter] = useState('ALL');
+
+    const filteredActivities = activities.filter(log => {
+        if (filter === 'ALL') return true;
+        return log.action === filter;
+    });
+
     return (
-        <div className="card" style={{ marginTop: '1.5rem' }}>
-            <div className="card-header">
-                <h3 className="card-title">
-                    <i className="fas fa-history"></i> ประวัติการใช้งานล่าสุด
-                </h3>
-            </div>
-            <div className="card-body">
-                <div className="table-responsive">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>เวลา</th>
-                                <th>ผู้ใช้งาน</th>
-                                <th>กิจกรรม</th>
-                                <th>รายละเอียด</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {activities.length > 0 ? activities.map(log => (
-                                <ActivityRow key={log.id} log={log} />
-                            )) : (
+        <>
+            <div className="card" style={{ marginTop: '1.5rem' }}>
+                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <h3 className="card-title">
+                        <i className="fas fa-history"></i> ประวัติการใช้งานล่าสุด
+                    </h3>
+                    <div className="card-actions" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <button 
+                            onClick={() => setFilter('ALL')}
+                            className="btn btn-sm"
+                            style={{ 
+                                borderRadius: '20px',
+                                padding: '0.25rem 0.75rem',
+                                backgroundColor: filter === 'ALL' ? '#f3f4f6' : 'transparent',
+                                color: filter === 'ALL' ? '#1f2937' : '#9ca3af',
+                                border: '1px solid ' + (filter === 'ALL' ? '#d1d5db' : 'transparent')
+                            }}
+                        >
+                            All
+                        </button>
+                        <button 
+                            onClick={() => setFilter('CREATE')}
+                            className="btn btn-sm"
+                            style={{ 
+                                borderRadius: '20px',
+                                padding: '0.25rem 0.75rem',
+                                backgroundColor: filter === 'CREATE' ? '#3b82f6' : 'transparent',
+                                color: filter === 'CREATE' ? 'white' : '#3b82f6',
+                                border: '1px solid #3b82f6',
+                                boxShadow: filter === 'CREATE' ? '0 2px 4px rgba(59, 130, 246, 0.3)' : 'none'
+                            }}
+                        >
+                            CREATE
+                        </button>
+                        <button 
+                            onClick={() => setFilter('UPDATE')}
+                            className="btn btn-sm"
+                            style={{ 
+                                borderRadius: '20px',
+                                padding: '0.25rem 0.75rem',
+                                backgroundColor: filter === 'UPDATE' ? '#f59e0b' : 'transparent',
+                                color: filter === 'UPDATE' ? 'white' : '#f59e0b',
+                                border: '1px solid #f59e0b',
+                                boxShadow: filter === 'UPDATE' ? '0 2px 4px rgba(245, 158, 11, 0.3)' : 'none'
+                            }}
+                        >
+                            UPDATE
+                        </button>
+                        <button 
+                            onClick={() => setFilter('DELETE')}
+                            className="btn btn-sm"
+                            style={{ 
+                                borderRadius: '20px',
+                                padding: '0.25rem 0.75rem',
+                                backgroundColor: filter === 'DELETE' ? '#ef4444' : 'transparent',
+                                color: filter === 'DELETE' ? 'white' : '#ef4444',
+                                border: '1px solid #ef4444',
+                                boxShadow: filter === 'DELETE' ? '0 2px 4px rgba(239, 68, 68, 0.3)' : 'none'
+                            }}
+                        >
+                            DELETE
+                        </button>
+                    </div>
+                </div>
+                <div className="card-body">
+                    <div className="table-responsive">
+                        <table className="data-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan="4" className="text-center">
-                                        ไม่มีข้อมูลกิจกรรมล่าสุด
-                                    </td>
+                                    <th>เวลา</th>
+                                    <th className="hide-on-mobile">ผู้ใช้งาน</th>
+                                    <th>กิจกรรม</th>
+                                    <th className="hide-on-mobile">รายละเอียด</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {filteredActivities.length > 0 ? filteredActivities.map(log => (
+                                    <ActivityRow 
+                                        key={log.id} 
+                                        log={log} 
+                                        onClick={() => setSelectedLog(log)}
+                                    />
+                                )) : (
+                                    <tr>
+                                        <td colSpan="4" className="text-center">
+                                            ไม่มีข้อมูลกิจกรรมล่าสุด
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <Modal
+                isOpen={!!selectedLog}
+                onClose={() => setSelectedLog(null)}
+                title="รายละเอียดกิจกรรม"
+            >
+                {selectedLog && (
+                    <div className="activity-details">
+                         <div className="form-group">
+                            <label className="text-muted mb-1">เวลา</label>
+                            <div>{formatThaiDateTime(selectedLog.created_at)}</div>
+                        </div>
+                        <div className="form-group">
+                            <label className="text-muted mb-1">ผู้ใช้งาน</label>
+                            <div className="d-flex align-items-center gap-2">
+                                <UserAvatar name={selectedLog.user_name} />
+                                {selectedLog.user_name}
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label className="text-muted mb-1">กิจกรรม</label>
+                            <div>
+                                <span className={`badge ${ACTION_BADGE_MAP[selectedLog.action] || 'badge-info'}`}>
+                                    {selectedLog.action}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label className="text-muted mb-1">รายละเอียด</label>
+                            <div className="p-2 bg-light rounded text-break">
+                                {selectedLog.entity_type} {selectedLog.entity_id ? `#${selectedLog.entity_id}` : ''}
+                                {selectedLog.details && (
+                                    <div className="mt-2 text-muted small">
+                                        {selectedLog.details}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        {selectedLog.ip_address && (
+                             <div className="form-group">
+                                <label className="text-muted mb-1">IP Address</label>
+                                <div>{selectedLog.ip_address}</div>
+                            </div>
+                        )}
+                         {selectedLog.user_agent && (
+                             <div className="form-group">
+                                <label className="text-muted mb-1">Device Info</label>
+                                <div className="small text-muted text-break">{selectedLog.user_agent}</div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Modal>
+        </>
     );
 }
 
 /**
  * ActivityRow Component
  */
-function ActivityRow({ log }) {
+function ActivityRow({ log, onClick }) {
     const badgeClass = ACTION_BADGE_MAP[log.action] || 'badge-info';
 
     return (
-        <tr>
+        <tr onClick={onClick} style={{ cursor: 'pointer' }}>
             <td>{formatThaiDateTime(log.created_at)}</td>
-            <td>
+            <td className="hide-on-mobile">
                 <div className="user-info-cell" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <UserAvatar name={log.user_name} />
                     {log.user_name}
@@ -182,7 +307,7 @@ function ActivityRow({ log }) {
             <td>
                 <span className={`badge ${badgeClass}`}>{log.action}</span>
             </td>
-            <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <td className="hide-on-mobile" style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {log.entity_type} {log.entity_id ? `#${log.entity_id}` : ''}
             </td>
         </tr>

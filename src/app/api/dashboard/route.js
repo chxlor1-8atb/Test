@@ -100,8 +100,9 @@ async function getRecentActivity(session) {
         SELECT a.*, COALESCE(u.full_name, 'System') as user_name 
         FROM audit_logs a
         LEFT JOIN users u ON a.user_id = u.id
+        WHERE a.action IN ('CREATE', 'UPDATE', 'DELETE')
         ORDER BY a.created_at DESC 
-        LIMIT 10
+        LIMIT 20
     `);
     return NextResponse.json({ success: true, activities });
 }
