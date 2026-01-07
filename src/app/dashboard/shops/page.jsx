@@ -534,6 +534,11 @@ function ShopRow({ shop, schemaColumns, hiddenFields, onUpdate, onDelete }) {
                     />
                 </td>
             )}
+            {isVisible('license_count') && (
+                <td className="text-center">
+                    <span className="badge badge-active">{shop.license_count}</span>
+                </td>
+            )}
             {schemaColumns && schemaColumns.map(col => (
                 <td key={col.id}>
                     <EditableCell
@@ -549,11 +554,6 @@ function ShopRow({ shop, schemaColumns, hiddenFields, onUpdate, onDelete }) {
                     />
                 </td>
             ))}
-            {isVisible('license_count') && (
-                <td className="text-center">
-                    <span className="badge badge-active">{shop.license_count}</span>
-                </td>
-            )}
             <td className="text-center">
                 <button
                     className="btn btn-danger btn-icon"

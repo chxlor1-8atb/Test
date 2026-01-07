@@ -96,10 +96,11 @@
  * From article: img { max-width: 100%; height: auto; }
  * This ensures images scale properly on all devices
  * and never overflow their containers
+ * SCOPED to .login-body to prevent conflicts with Dashboard
  */
-img,
-video,
-svg {
+.login-body img,
+.login-body video,
+.login-body svg {
     max-width: 100%;
     height: auto;
     display: block;

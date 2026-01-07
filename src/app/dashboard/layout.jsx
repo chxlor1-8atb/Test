@@ -5,6 +5,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import '../../styles/style.css';
+import '../../styles/sweetalert-custom.css';
+import '../../styles/toast.css';
 
 // Lazy load heavy components to reduce initial bundle
 const PatchNotesModal = dynamic(

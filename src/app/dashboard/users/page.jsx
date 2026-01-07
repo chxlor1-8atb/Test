@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { usePagination } from '@/hooks';
 import { API_ENDPOINTS, ROLE_OPTIONS } from '@/constants';
 import { formatThaiDateTime } from '@/utils/formatters';
-import { showSuccess, showError, confirmDelete } from '@/utils/alerts';
+import { showSuccess, showError, pendingDelete } from '@/utils/alerts';
 
 // UI Components
 import CustomSelect from '@/components/ui/CustomSelect';
@@ -106,24 +106,47 @@ export default function UsersPage() {
     };
 
     const handleDelete = async (id) => {
-        const confirmed = await confirmDelete('ผู้ใช้งาน');
-        if (!confirmed) return;
+        // Find the user to delete
+        const userToDelete = users.find(u => u.id === id);
+        if (!userToDelete) return;
 
-        try {
-            const response = await fetch(`${API_ENDPOINTS.USERS}?id=${id}`, {
-                method: 'DELETE'
-            });
-            const data = await response.json();
+        // Remove from UI immediately (optimistic)
+        setUsers(prev => prev.filter(u => u.id !== id));
 
-            if (data.success) {
-                showSuccess(data.message);
-                fetchUsers();
-            } else {
-                showError(data.message);
+        // Show pending delete toast
+        pendingDelete({
+            itemName: `ผู้ใช้ "${userToDelete.full_name || userToDelete.username}"`,
+            duration: 5000,
+            onDelete: async () => {
+                // Timer ended - actually delete from database
+                try {
+                    const response = await fetch(`${API_ENDPOINTS.USERS}?id=${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showSuccess('ลบผู้ใช้งานสำเร็จ');
+                    } else {
+                        // Failed - restore user
+                        setUsers(prev => [...prev, userToDelete]);
+                        showError(data.message);
+                    }
+                } catch (error) {
+                    // Error - restore user
+                    setUsers(prev => [...prev, userToDelete]);
+                    showError(error.message);
+                }
+            },
+            onCancel: () => {
+                // User cancelled - restore user to list
+                setUsers(prev => {
+                    // Check if not already in list
+                    if (prev.find(u => u.id === id)) return prev;
+                    return [...prev, userToDelete].sort((a, b) => a.id - b.id);
+                });
             }
-        } catch (error) {
-            showError(error.message);
-        }
+        });
     };
 
     const handleSubmit = async (e) => {
