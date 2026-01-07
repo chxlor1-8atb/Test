@@ -135,6 +135,11 @@ export default function ExpiringPage() {
         return filteredLicenses.slice((page - 1) * limit, page * limit);
     }, [filteredLicenses, page, limit]);
 
+    // Count expired for button
+    const expiredCount = useMemo(() => {
+        return allLicenses.filter(l => parseInt(l.days_until_expiry) < 0).length;
+    }, [allLicenses]);
+
     // Reset to page 1 when filters change
     useEffect(() => {
         setPage(1);
@@ -291,21 +296,33 @@ export default function ExpiringPage() {
                     </div>
 
                     <button
-                        className="btn btn-secondary btn-icon"
+                        className="btn btn-secondary"
                         onClick={clearFilters}
                         title="ล้างตัวกรอง"
-                        style={{ height: '42px', width: '42px' }}
+                        style={{ height: '42px', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 16px', whiteSpace: 'nowrap' }}
                     >
                         <i className="fas fa-undo"></i>
+                        <span>รีเซ็ตตัวกรอง</span>
                     </button>
 
                     <button
-                        className="btn btn-danger btn-icon"
+                        className={`btn ${expiredCount > 0 ? 'btn-danger' : 'btn-secondary'}`}
                         onClick={handleClearExpired}
-                        title="ลบรายการที่หมดอายุแล้วทั้งหมด"
-                        style={{ height: '42px', width: '42px' }}
+                        disabled={expiredCount === 0}
+                        title={expiredCount > 0 ? "ลบรายการที่หมดอายุแล้วทั้งหมด" : "ไม่มีรายการที่หมดอายุ"}
+                        style={{ 
+                            height: '42px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '8px', 
+                            padding: '0 16px', 
+                            whiteSpace: 'nowrap',
+                            opacity: expiredCount === 0 ? 0.6 : 1,
+                            cursor: expiredCount === 0 ? 'not-allowed' : 'pointer'
+                        }}
                     >
                         <i className="fas fa-trash-alt"></i>
+                        <span>ล้างที่หมดอายุ ({expiredCount})</span>
                     </button>
                 </FilterRow>
 
