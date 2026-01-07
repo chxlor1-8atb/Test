@@ -6377,3 +6377,36 @@ img {
         font-size: 1.1rem;
     }
 }
+
+/* ========================================
+   Activity Filter Actions
+   ======================================== */
+.activity-filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .activity-filter-actions {
+        width: 100%;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+        padding-right: 1rem; /* Allow scrolling past last item */
+        -webkit-overflow-scrolling: touch;
+        /* Hide scrollbar */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        align-items: center;
+    }
+    
+    .activity-filter-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .activity-filter-actions .btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+}

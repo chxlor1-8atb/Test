@@ -160,7 +160,7 @@ function RecentActivityCard({ activities }) {
                     <h3 className="card-title">
                         <i className="fas fa-history"></i> ประวัติการใช้งานล่าสุด
                     </h3>
-                    <div className="card-actions" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <div className="card-actions activity-filter-actions">
                         <button 
                             onClick={() => setFilter('ALL')}
                             className="btn btn-sm"
