@@ -2,10 +2,15 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import fs from 'fs';
 import path from 'path';
+import { requireAdmin } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+    // Require admin access for database migration
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     try {
         const sql = neon(process.env.DATABASE_URL);
 

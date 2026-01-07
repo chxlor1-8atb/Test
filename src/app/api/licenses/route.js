@@ -1,21 +1,16 @@
 
-import { cookies } from 'next/headers';
-import { getIronSession } from 'iron-session';
 import { fetchAll, fetchOne, executeQuery } from '@/lib/db';
-import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
 import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
-
-// Helper function to get current user from session
-async function getCurrentUser() {
-    const cookieStore = await cookies();
-    const session = await getIronSession(cookieStore, sessionOptions);
-    return session.userId ? { id: session.userId, username: session.username } : null;
-}
+import { requireAuth, getCurrentUser } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -100,6 +95,10 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const body = await request.json();
         const { shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes, custom_fields } = body;
@@ -131,6 +130,10 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const body = await request.json();
         const { id, shop_id, license_type_id, license_number, issue_date, expiry_date, status, notes, custom_fields } = body;
@@ -163,6 +166,10 @@ export async function PUT(request) {
 }
 
 export async function DELETE(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

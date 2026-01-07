@@ -1,16 +1,7 @@
-import { cookies } from 'next/headers';
-import { getIronSession } from 'iron-session';
 import { NextResponse } from 'next/server';
 import { executeQuery, fetchOne, fetchAll } from '@/lib/db';
-import { sessionOptions } from '@/lib/session';
 import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
-
-// Helper function to get current user from session
-async function getCurrentUser() {
-    const cookieStore = await cookies();
-    const session = await getIronSession(cookieStore, sessionOptions);
-    return session.userId ? { id: session.userId, username: session.username } : null;
-}
+import { requireAuth, getCurrentUser } from '@/lib/api-helpers';
 
 async function sendTelegramMessage(token, chatId, message) {
     if (!token || !chatId) throw new Error('Token or Chat ID missing');
@@ -30,6 +21,10 @@ async function sendTelegramMessage(token, chatId, message) {
 }
 
 export async function GET(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
 
@@ -56,6 +51,10 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const body = await request.json();
         const { action } = body;

@@ -1,10 +1,15 @@
 import { fetchAll, fetchOne, executeQuery } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 // GET - Get custom field values for an entity
 export async function GET(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const entityType = searchParams.get('entity_type');
@@ -54,6 +59,10 @@ export async function GET(request) {
 
 // POST - Save/Update custom field values for an entity
 export async function POST(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const body = await request.json();
         const { entity_type, entity_id, values } = body;
@@ -100,6 +109,10 @@ export async function POST(request) {
 
 // DELETE - Delete all custom field values for an entity
 export async function DELETE(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const entityType = searchParams.get('entity_type');

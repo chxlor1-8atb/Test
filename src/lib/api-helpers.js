@@ -3,6 +3,93 @@
  */
 
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { getIronSession } from 'iron-session';
+import { sessionOptions } from '@/lib/session';
+
+// ========================================
+// Authentication Helpers
+// ========================================
+
+/**
+ * Get current user session
+ * @returns {Promise<{id: number, username: string, role: string, fullName: string} | null>}
+ */
+export async function getSession() {
+    try {
+        const cookieStore = await cookies();
+        const session = await getIronSession(cookieStore, sessionOptions);
+        
+        if (!session.userId) {
+            return null;
+        }
+        
+        return {
+            id: session.userId,
+            username: session.username,
+            role: session.role,
+            fullName: session.fullName
+        };
+    } catch (error) {
+        console.error('Session error:', error);
+        return null;
+    }
+}
+
+/**
+ * Require authentication - returns error response if not authenticated
+ * Usage: const authError = await requireAuth(); if (authError) return authError;
+ * @returns {Promise<NextResponse | null>} - Returns error response or null if authenticated
+ */
+export async function requireAuth() {
+    const session = await getSession();
+    
+    if (!session) {
+        return NextResponse.json(
+            { success: false, message: 'กรุณาเข้าสู่ระบบก่อน' },
+            { status: 401 }
+        );
+    }
+    
+    return null; // Authenticated
+}
+
+/**
+ * Require admin role - returns error response if not admin
+ * @returns {Promise<NextResponse | null>} - Returns error response or null if admin
+ */
+export async function requireAdmin() {
+    const session = await getSession();
+    
+    if (!session) {
+        return NextResponse.json(
+            { success: false, message: 'กรุณาเข้าสู่ระบบก่อน' },
+            { status: 401 }
+        );
+    }
+    
+    if (session.role !== 'admin') {
+        return NextResponse.json(
+            { success: false, message: 'ต้องการสิทธิ์ผู้ดูแลระบบ' },
+            { status: 403 }
+        );
+    }
+    
+    return null; // Authorized
+}
+
+/**
+ * Get current user from session (for activity logging)
+ * @returns {Promise<{id: number, username: string} | null>}
+ */
+export async function getCurrentUser() {
+    const session = await getSession();
+    return session ? { id: session.id, username: session.username } : null;
+}
+
+// ========================================
+// API Response Helpers
+// ========================================
 
 /**
  * สร้าง optimized JSON response พร้อม caching headers

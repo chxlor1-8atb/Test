@@ -1,10 +1,15 @@
 
 import { NextResponse } from 'next/server';
 import { executeQuery, fetchAll } from '@/lib/db';
+import { requireAuth } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const table = searchParams.get('table');
@@ -25,6 +30,10 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const body = await request.json();
         const { table_name, column_key, column_label, column_type } = body;
@@ -56,6 +65,10 @@ export async function POST(request) {
 }
 
 export async function DELETE(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

@@ -1,10 +1,15 @@
 import { fetchAll, fetchOne, executeQuery } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 // GET - List all entities
 export async function GET(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -37,6 +42,10 @@ export async function GET(request) {
 
 // POST - Create new entity
 export async function POST(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const body = await request.json();
         const { slug, label, icon, description, display_order } = body;
@@ -73,6 +82,10 @@ export async function POST(request) {
 
 // PUT - Update entity
 export async function PUT(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const body = await request.json();
         const { id, label, icon, description, display_order, is_active } = body;
@@ -100,6 +113,10 @@ export async function PUT(request) {
 
 // DELETE - Delete entity
 export async function DELETE(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

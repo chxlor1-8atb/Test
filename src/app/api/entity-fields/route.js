@@ -1,10 +1,15 @@
 import { fetchOne, executeQuery } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 // GET - Get single field details (mostly for editing)
 export async function GET(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -22,6 +27,10 @@ export async function GET(request) {
 
 // POST - Create new field for an entity
 export async function POST(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const body = await request.json();
         const {
@@ -82,6 +91,10 @@ export async function POST(request) {
 
 // PUT - Update field
 export async function PUT(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const body = await request.json();
         const {
@@ -135,6 +148,10 @@ export async function PUT(request) {
 
 // DELETE - Delete field
 export async function DELETE(request) {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

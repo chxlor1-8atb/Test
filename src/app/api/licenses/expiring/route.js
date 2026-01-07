@@ -1,10 +1,15 @@
 
 import { fetchAll } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+    // Check authentication
+    const authError = await requireAuth();
+    if (authError) return authError;
+
     try {
         // Query to get expired licenses OR licenses expiring soon (e.g., next 60 days)
         // Adjust the interval as needed. The legacy system seemed to load them all via dashboard stats? 
