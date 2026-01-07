@@ -4538,14 +4538,9 @@ body:has(.sidebar.show) .mobile-toggle i {
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 0;
     margin-top: 1rem;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: var(--border-radius-lg);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    flex-wrap: wrap;
     flex-wrap: wrap;
 }
 
@@ -4870,6 +4865,56 @@ body:has(.sidebar.show) .mobile-toggle i {
     transition: all 0.25s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
+
+/* Mobile Responsive for Pagination */
+@media (max-width: 768px) {
+    .pagination-container {
+        flex-direction: column;
+        justify-content: center;
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+
+    .pagination-info {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pagination-nav {
+        order: 1;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .pagination-controls {
+        order: 2;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .pagination-jump {
+        display: none; /* Hide jump on mobile to save space */
+    }
+
+    .pagination-btn-nav,
+    .pagination-btn-page {
+        min-width: 36px;
+        height: 36px;
+        padding: 0; 
+    }
+    
+    .pagination-per-page {
+        width: 100%;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.6);
+    }
+}
+
 
 .pagination-per-page:hover {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.9) 100%);
