@@ -74,7 +74,7 @@ export async function GET(request) {
                 ORDER BY l.id DESC
             `;
             data = await fetchAll(query, params);
-            columns = ['License Number', 'Shop Name', 'Type', 'Issue Date', 'Expiry Date', 'Status', 'Notes'];
+            columns = ['เลขที่ใบอนุญาต', 'ชื่อร้าน', 'ประเภท', 'วันออกใบอนุญาต', 'วันหมดอายุ', 'สถานะ', 'หมายเหตุ'];
 
         } else if (type === 'shops') {
             // Check admin logic if needed, but for now allow
@@ -83,7 +83,7 @@ export async function GET(request) {
                 FROM shops
                 ORDER BY id DESC
             `);
-            columns = ['Shop Name', 'Owner', 'Phone', 'Email', 'Address', 'Notes', 'Created At'];
+            columns = ['ชื่อร้าน', 'ชื่อเจ้าของ', 'โทรศัพท์', 'อีเมล', 'ที่อยู่', 'หมายเหตุ', 'วันที่สร้าง'];
 
         } else if (type === 'users') {
             // RESTRICT TO ADMIN logic needed? Assuming dashboard access implies admin for this system
@@ -92,20 +92,36 @@ export async function GET(request) {
                 FROM users
                 ORDER BY id ASC
             `);
-            columns = ['Username', 'Created At'];
+            columns = ['ชื่อผู้ใช้', 'วันที่สร้าง'];
         } else {
             return NextResponse.json({ success: false, message: 'Invalid export type' }, { status: 400 });
         }
+
+        // Status translation map
+        const statusMap = {
+            'active': 'ปกติ',
+            'expired': 'หมดอายุ',
+            'pending': 'กำลังดำเนินการ',
+            'suspended': 'ถูกพักใช้',
+            'revoked': 'ถูกเพิกถอน'
+        };
 
         // Convert to CSV
         const csvRows = [];
         csvRows.push(columns.join(',')); // Header
 
         for (const row of data) {
-            const values = Object.values(row).map(val => {
+            const values = Object.values(row).map((val, index) => {
                 if (val === null || val === undefined) return '';
+                
+                let stringVal = String(val);
+                
+                // Translate status values to Thai (status is typically the 6th column for licenses)
+                if (statusMap[stringVal.toLowerCase()]) {
+                    stringVal = statusMap[stringVal.toLowerCase()];
+                }
+                
                 // Escape quotes and wrap in quotes if contains comma or quote
-                const stringVal = String(val);
                 if (stringVal.includes(',') || stringVal.includes('"') || stringVal.includes('\n')) {
                     return `"${stringVal.replace(/"/g, '""')}"`;
                 }
