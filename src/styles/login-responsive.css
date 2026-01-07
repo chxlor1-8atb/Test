@@ -864,3 +864,85 @@
         margin-bottom: 0.5rem;
     }
 }
+
+/* ====================================
+   18. PERFORMANCE OPTIMIZATIONS (MOBILE)
+   ==================================== */
+/* Fix for "laggy" feel on mobile - reduces GPU load and main thread blocking */
+@media (max-width: 899px) {
+
+    /* 1. Disable heavy background animations */
+    .login-body::after,
+    .login-body .bg-shapes::before,
+    .login-body .bg-shapes::after,
+    .particle {
+        animation: none !important;
+        /* Use static positions instead of moving orbs */
+        transform: none !important;
+        opacity: 0.6;
+        /* Slight dim to compensate for lack of movement */
+        filter: blur(40px) !important;
+        /* Static blur is cheaper */
+        transition: none !important;
+    }
+    
+    /* Ensure background shapes stay in a nice position when effective animation is removed */
+    .login-body::after { top: 0; right: 0; opacity: 0.4; }
+    .login-body .bg-shapes::before { bottom: 0; left: 0; opacity: 0.4; }
+    .login-body .bg-shapes::after { top: 50%; left: 50%; transform: translate(-50%, -50%) !important; opacity: 0.3; }
+
+    /* 2. Hide particles on mobile (too many DOM elements moving) */
+    .particles {
+        display: none !important;
+    }
+
+    /* 3. Remove expensive backdrop-filter (huge performance killer on mobile) */
+    .login-card,
+    .card-left,
+    .card-right,
+    .feature-tag {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    /* 4. Use solid/opaque backgrounds instead of glassmorphism */
+    .login-card {
+        background: transparent !important;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05) !important;
+    }
+
+    .card-left {
+        /* Pre-calculated color of the gradient on white background */
+        background: linear-gradient(135deg,
+                #FEF3C7 0%,
+                #FDE68A 50%,
+                #FCD34D 100%) !important;
+    }
+
+    .card-right {
+        background: linear-gradient(180deg,
+                #FDF0C8 0%,
+                #FFFDF5 30%,
+                #FFFFFF 100%) !important;
+    }
+
+    .feature-tag {
+        background: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    /* 5. Optimize shadows */
+    .brand__logo {
+        box-shadow: 0 4px 10px rgba(217, 119, 6, 0.15) !important;
+    }
+
+    .btn-submit {
+        box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3) !important;
+    }
+
+    /* 6. Hardware acceleration for critical transforming elements */
+    .btn-submit,
+    .input-field,
+    .brand__logo {
+        will-change: transform;
+    }
+}
