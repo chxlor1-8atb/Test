@@ -303,6 +303,8 @@ export default function LoginPage() {
                                 <label className="remember-me__label">
                                     <input
                                         type="checkbox"
+                                        id="rememberMe"
+                                        name="rememberMe"
                                         className="remember-me__checkbox"
                                         checked={rememberMe}
                                         onChange={(e) => setRememberMe(e.target.checked)}
@@ -378,10 +380,12 @@ const InputGroup = ({ id, type, label, value, onChange, icon, togglePassword, is
         <input
             type={type}
             id={id}
+            name={id}
             className={`input-field ${togglePassword ? 'input-field--with-toggle' : ''}`}
             placeholder=" "
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            autoComplete={type === 'password' ? 'current-password' : 'username'}
             required
         />
         <label htmlFor={id} className="input-label">{label}</label>
