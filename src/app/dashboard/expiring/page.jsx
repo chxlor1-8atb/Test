@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { API_ENDPOINTS } from '@/constants';
 import { formatThaiDate } from '@/utils/formatters';
+import { showSuccess, showError, showInfo, confirmDelete, pendingDelete } from '@/utils/alerts';
 
 // UI Components
 import CustomSelect from '@/components/ui/CustomSelect';
@@ -148,6 +149,66 @@ export default function ExpiringPage() {
         setSortOrder('expiry_asc');
     };
 
+    const handleDelete = (license) => {
+        // Optimistic remove
+        setAllLicenses(prev => prev.filter(l => l.id !== license.id));
+
+        pendingDelete({
+            itemName: `ใบอนุญาต ${license.license_number}`,
+            onDelete: async () => {
+                try {
+                    const res = await fetch(`/api/licenses?id=${license.id}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                        // Success - item implied deleted
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (err) {
+                    showError(err.message);
+                    // Revert if failed
+                    setAllLicenses(prev => [...prev, license]);
+                }
+            },
+            onCancel: () => {
+                // Revert
+                setAllLicenses(prev => [...prev, license]);
+            }
+        });
+    };
+
+    const handleClearExpired = async () => {
+        const expiredLicenses = allLicenses.filter(l => {
+             const days = parseInt(l.days_until_expiry);
+             return days < 0;
+        });
+
+        if (expiredLicenses.length === 0) {
+            showInfo('ไม่มีรายการที่หมดอายุ');
+            return;
+        }
+
+        const confirmed = await confirmDelete(`${expiredLicenses.length} รายการที่หมดอายุ`);
+        if (confirmed) {
+            setLoading(true);
+            try {
+                // Delete all expired licenses
+                const deletePromises = expiredLicenses.map(l => 
+                    fetch(`/api/licenses?id=${l.id}`, { method: 'DELETE' }).then(r => r.json())
+                );
+                
+                await Promise.all(deletePromises);
+                showSuccess(`ลบ ${expiredLicenses.length} รายการเรียบร้อยแล้ว`);
+                fetchData();
+            } catch (error) {
+                showError('เกิดข้อผิดพลาดในการลบข้อมูล');
+                fetchData();
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
     const handleStatusFilterToggle = (status) => {
         setStatusFilter(prev => prev === status ? '' : status);
     };
@@ -237,6 +298,15 @@ export default function ExpiringPage() {
                     >
                         <i className="fas fa-undo"></i>
                     </button>
+
+                    <button
+                        className="btn btn-danger btn-icon"
+                        onClick={handleClearExpired}
+                        title="ลบรายการที่หมดอายุแล้วทั้งหมด"
+                        style={{ height: '42px', width: '42px' }}
+                    >
+                        <i className="fas fa-trash-alt"></i>
+                    </button>
                 </FilterRow>
 
                 <div className="table-container">
@@ -249,6 +319,7 @@ export default function ExpiringPage() {
                                 <th>เลขที่</th>
                                 <th className="text-center">หมดอายุ</th>
                                 <th className="text-center">สถานะ</th>
+                                <th className="text-center" style={{ width: '50px' }}>จัดการ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -260,7 +331,11 @@ export default function ExpiringPage() {
                                 </tr>
                             ) : (
                                 currentData.map(license => (
-                                    <ExpiringLicenseRow key={license.id} license={license} />
+                                    <ExpiringLicenseRow 
+                                        key={license.id} 
+                                        license={license} 
+                                        onDelete={() => handleDelete(license)}
+                                    />
                                 ))
                             )}
                         </tbody>
@@ -350,7 +425,7 @@ function StatusFilterBadges({ currentFilter, onToggle, onClear }) {
 /**
  * ExpiringLicenseRow Component
  */
-function ExpiringLicenseRow({ license }) {
+function ExpiringLicenseRow({ license, onDelete }) {
     const daysLeft = parseInt(license.days_until_expiry);
     const expiryStatus = getExpiryStatus(daysLeft);
 
@@ -365,6 +440,18 @@ function ExpiringLicenseRow({ license }) {
                 <span className={`badge ${expiryStatus.badgeClass}`}>
                     <i className={expiryStatus.icon}></i> {expiryStatus.text}
                 </span>
+            </td>
+            <td className="text-center">
+                <button 
+                    className="btn-icon text-danger hover:bg-red-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                    }}
+                    title="ลบรายการ"
+                >
+                    <i className="fas fa-trash"></i>
+                </button>
             </td>
         </tr>
     );

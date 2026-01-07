@@ -124,24 +124,24 @@ export async function POST(request) {
             // Find expiring licenses
             const days = settings.days_before_expiry || 30;
             const expiringLicenses = await fetchAll(`
-                SELECT l.*, s.shop_name, t.type_name 
+                SELECT l.*, s.shop_name, t.name as type_name 
                 FROM licenses l
                 JOIN shops s ON l.shop_id = s.id
                 JOIN license_types t ON l.license_type_id = t.id
                 WHERE l.status = 'active'
-                AND l.expire_date <= (CURRENT_DATE + interval '${days} days')
-                AND l.expire_date >= CURRENT_DATE
+                AND l.expiry_date <= (CURRENT_DATE + interval '${days} days')
+                AND l.expiry_date >= CURRENT_DATE
             `);
 
             let sentCount = 0;
             let errorCount = 0;
 
             for (const license of expiringLicenses) {
-                const daysLeft = Math.ceil((new Date(license.expire_date) - new Date()) / (1000 * 60 * 60 * 24));
+                const daysLeft = Math.ceil((new Date(license.expiry_date) - new Date()) / (1000 * 60 * 60 * 24));
                 const message = `⚠️ <b>แจ้งเตือนใบอนุญาตใกล้หมดอายุ</b>\n\n` +
                     `ร้านค้า: <b>${license.shop_name}</b>\n` +
                     `ประเภท: ${license.type_name}\n` +
-                    `หมดอายุ: ${new Date(license.expire_date).toLocaleDateString('th-TH')}\n` +
+                    `หมดอายุ: ${new Date(license.expiry_date).toLocaleDateString('th-TH')}\n` +
                     `เหลือเวลา: ${daysLeft} วัน`;
 
                 try {
@@ -164,6 +164,27 @@ export async function POST(request) {
                 success: true,
                 message: `ส่งการแจ้งเตือนสำเร็จ ${sentCount} รายการ (ผิดพลาด ${errorCount} รายการ)`
             });
+        }
+
+        if (action === 'clear_logs') {
+            const { ids } = body;
+            
+            if (ids && Array.isArray(ids) && ids.length > 0) {
+                // Delete specific logs
+                // Use a parameterized query for safety. 
+                // Since executeQuery doesn't support array directly for IN clause easily in this basic helper properly without unnest or multiple placeholders.
+                // We'll generate placeholders like $1, $2, ...
+                const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+                await executeQuery(
+                    `DELETE FROM notification_logs WHERE id IN (${placeholders})`,
+                    ids
+                );
+                return NextResponse.json({ success: true, message: `ลบประวัติการแจ้งเตือน ${ids.length} รายการเรียบร้อยแล้ว` });
+            } else {
+                // Delete all
+                await executeQuery('DELETE FROM notification_logs');
+                return NextResponse.json({ success: true, message: 'ล้างประวัติการแจ้งเตือนทั้งหมดเรียบร้อยแล้ว' });
+            }
         }
 
         return NextResponse.json({ success: false, message: 'Invalid action' }, { status: 400 });
