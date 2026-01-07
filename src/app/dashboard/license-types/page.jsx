@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { API_ENDPOINTS } from '@/constants';
-import { showSuccess, showError, confirmDelete } from '@/utils/alerts';
+import { showSuccess, showError, pendingDelete } from '@/utils/alerts';
 
 // UI Components
 import EditableCell from '@/components/ui/EditableCell';
@@ -85,25 +85,40 @@ export default function LicenseTypesPage() {
         }
     };
 
-    const handleDelete = async (id) => {
-        const confirmed = await confirmDelete('ประเภทใบอนุญาต');
-        if (!confirmed) return;
+    const handleDelete = (id) => {
+        const itemToDelete = types.find(t => t.id === id);
+        if (!itemToDelete) return;
 
-        try {
-            const response = await fetch(`${API_ENDPOINTS.LICENSE_TYPES}?id=${id}`, {
-                method: 'DELETE'
-            });
-            const data = await response.json();
+        // Optimistic update
+        setTypes(prev => prev.filter(t => t.id !== id));
 
-            if (data.success) {
-                showSuccess(data.message);
+        pendingDelete({
+            itemName: 'ประเภทใบอนุญาต',
+            onDelete: async () => {
+                try {
+                    const response = await fetch(`${API_ENDPOINTS.LICENSE_TYPES}?id=${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.message);
+                    }
+                    // Success
+                    fetchTypes();
+                } catch (error) {
+                    showError(error.message);
+                    // Restore on error
+                    setTypes(prev => [...prev, itemToDelete]);
+                    fetchTypes();
+                }
+            },
+            onCancel: () => {
+                // Restore on cancel
+                setTypes(prev => [...prev, itemToDelete]);
                 fetchTypes();
-            } else {
-                showError(data.message);
             }
-        } catch (error) {
-            showError(error.message);
-        }
+        });
     };
 
     const handleSubmit = async (e) => {

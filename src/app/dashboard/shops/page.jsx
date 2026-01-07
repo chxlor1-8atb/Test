@@ -5,7 +5,7 @@ import { usePagination } from '@/hooks';
 import { useSchema } from '@/hooks';
 import { API_ENDPOINTS } from '@/constants';
 import { formatThaiDate } from '@/utils/formatters';
-import { showSuccess, showError, confirmDelete } from '@/utils/alerts';
+import { showSuccess, showError, pendingDelete } from '@/utils/alerts';
 
 // UI Components
 import Pagination from '@/components/ui/Pagination';
@@ -209,25 +209,43 @@ export default function ShopsPage() {
     /**
      * Handles shop deletion
      */
-    const handleDelete = async (id) => {
-        const confirmed = await confirmDelete('ข้อมูลร้านค้า');
-        if (!confirmed) return;
+    /**
+     * Handles shop deletion
+     */
+    const handleDelete = (id) => {
+        const itemToDelete = shops.find(s => s.id === id);
+        if (!itemToDelete) return;
 
-        try {
-            const response = await fetch(`${API_ENDPOINTS.SHOPS}?id=${id}`, {
-                method: 'DELETE'
-            });
-            const data = await response.json();
+        // Optimistic update
+        setShops(prev => prev.filter(s => s.id !== id));
 
-            if (data.success) {
-                showSuccess(data.message);
+        pendingDelete({
+            itemName: 'ร้านค้า',
+            onDelete: async () => {
+                try {
+                    const response = await fetch(`${API_ENDPOINTS.SHOPS}?id=${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.message);
+                    }
+                    // Success - optionally refresh to sync pagination
+                    fetchShops(); 
+                } catch (error) {
+                    showError(error.message);
+                    // Restore on error
+                    setShops(prev => [...prev, itemToDelete]);
+                    fetchShops();
+                }
+            },
+            onCancel: () => {
+                // Restore on cancel
+                setShops(prev => [...prev, itemToDelete]);
                 fetchShops();
-            } else {
-                showError(data.message);
             }
-        } catch (error) {
-            showError(error.message);
-        }
+        });
     };
 
     /**

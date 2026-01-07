@@ -5,7 +5,7 @@ import { usePagination, useDropdownData } from '@/hooks';
 import { useSchema } from '@/hooks';
 import { STATUS_OPTIONS, STATUS_FILTER_OPTIONS, API_ENDPOINTS } from '@/constants';
 import { formatThaiDate, toInputDateFormat, getTodayDateString } from '@/utils/formatters';
-import { showSuccess, showError, confirmDelete } from '@/utils/alerts';
+import { showSuccess, showError, pendingDelete } from '@/utils/alerts';
 
 // UI Components
 import CustomSelect from '@/components/ui/CustomSelect';
@@ -183,25 +183,43 @@ export default function LicensesPage() {
     /**
      * Handles license deletion
      */
-    const handleDelete = async (id) => {
-        const confirmed = await confirmDelete('ข้อมูลใบอนุญาต');
-        if (!confirmed) return;
+    /**
+     * Handles license deletion
+     */
+    const handleDelete = (id) => {
+        const itemToDelete = licenses.find(l => l.id === id);
+        if (!itemToDelete) return;
 
-        try {
-            const response = await fetch(`${API_ENDPOINTS.LICENSES}?id=${id}`, {
-                method: 'DELETE'
-            });
-            const data = await response.json();
+        // Optimistic update
+        setLicenses(prev => prev.filter(l => l.id !== id));
 
-            if (data.success) {
-                showSuccess(data.message);
+        pendingDelete({
+            itemName: 'ใบอนุญาต',
+            onDelete: async () => {
+                try {
+                    const response = await fetch(`${API_ENDPOINTS.LICENSES}?id=${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.message);
+                    }
+                    // Success - optionally refresh
+                    fetchLicenses();
+                } catch (error) {
+                    showError(error.message);
+                    // Restore on error
+                    setLicenses(prev => [...prev, itemToDelete]);
+                    fetchLicenses();
+                }
+            },
+            onCancel: () => {
+                // Restore on cancel
+                setLicenses(prev => [...prev, itemToDelete]);
                 fetchLicenses();
-            } else {
-                showError(data.message);
             }
-        } catch (error) {
-            showError(error.message);
-        }
+        });
     };
 
     /**
