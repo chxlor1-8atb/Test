@@ -41,18 +41,11 @@ export default function RootLayout({ children }) {
             <head>
                 {/* DNS Prefetch for faster external resource loading */}
                 <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
-                <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
 
                 {/* Preconnect for critical resources */}
                 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-                {/* Google Fonts - Inter and Noto Sans Thai */}
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap"
-                    rel="stylesheet"
-                />
+                {/* Google Fonts - Inter and Noto Sans Thai are handled by next/font/google above */}
 
                 {/* Font Awesome - load directly */}
                 <link
