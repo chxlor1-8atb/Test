@@ -6,6 +6,30 @@ import { sessionOptions } from '@/lib/session';
 import { NextResponse } from 'next/server';
 import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
 
+// Cloudflare Turnstile Verification
+async function verifyTurnstile(token) {
+    const secretKey = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA'; // Use testing key as fallback/dev
+    
+    if (!token) return false;
+
+    try {
+        const formData = new FormData();
+        formData.append('secret', secretKey);
+        formData.append('response', token);
+
+        const result = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const outcome = await result.json();
+        return outcome.success;
+    } catch (e) {
+        console.error('Turnstile verification error:', e);
+        return false;
+    }
+}
+
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
@@ -24,7 +48,7 @@ export async function POST(request) {
     } catch (err) {
         console.error('Auth error:', err);
         return NextResponse.json(
-            { success: false, message: 'เกิดข้อผิดพลาด: ' + err.message },
+            { success: false, message: 'เกิดข้อผิดพลาดภายในระบบ' },
             { status: 500 }
         );
     }
@@ -43,7 +67,7 @@ export async function GET(request) {
     } catch (err) {
         console.error('Auth error:', err);
         return NextResponse.json(
-            { success: false, message: 'เกิดข้อผิดพลาด' },
+            { success: false, message: 'เกิดข้อผิดพลาดภายในระบบ' },
             { status: 500 }
         );
     }
@@ -53,6 +77,19 @@ async function handleLogin(request) {
     const data = await request.json();
     const username = (data.username || '').trim();
     const password = data.password || '';
+    const turnstileToken = data['cf-turnstile-response'];
+
+    // 1. Verify Turnstile CAPTCHA
+    const isHuman = await verifyTurnstile(turnstileToken);
+    
+    // In development mode, you might want to skip this or use a specific flag
+    // But for security, we enforce it if a token is expected
+    if (!isHuman && process.env.NODE_ENV === 'production') {
+        return NextResponse.json({
+            success: false,
+            message: 'การตรวจสอบความปลอดภัยล้มเหลว (CAPTCHA Failed)'
+        });
+    }
 
     if (!username || !password) {
         return NextResponse.json({
