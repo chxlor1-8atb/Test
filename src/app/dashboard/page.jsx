@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { API_ENDPOINTS } from '@/constants';
 import { formatThaiDateTime, getInitial } from '@/utils/formatters';
 import Modal from '@/components/ui/Modal';
+import Pagination from '@/components/ui/Pagination';
 
 
 
@@ -131,11 +132,26 @@ function StatCard({ value, label, icon, variant }) {
 function RecentActivityCard({ activities }) {
     const [selectedLog, setSelectedLog] = useState(null);
     const [filter, setFilter] = useState('ALL');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const filteredActivities = activities.filter(log => {
         if (filter === 'ALL') return true;
         return log.action === filter;
     });
+
+    // Reset to first page when filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filter]);
+
+    // Calculate pagination
+    const totalItems = filteredActivities.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const paginatedActivities = filteredActivities.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     return (
         <>
@@ -214,7 +230,7 @@ function RecentActivityCard({ activities }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredActivities.length > 0 ? filteredActivities.map(log => (
+                                {paginatedActivities.length > 0 ? paginatedActivities.map(log => (
                                     <ActivityRow 
                                         key={log.id} 
                                         log={log} 
@@ -230,6 +246,21 @@ function RecentActivityCard({ activities }) {
                             </tbody>
                         </table>
                     </div>
+                    
+                    {filteredActivities.length > 0 && (
+                        <div style={{ marginTop: '1rem' }}>
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                onItemsPerPageChange={setItemsPerPage}
+                                showItemsPerPage={true}
+                                showPageJump={false}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 
