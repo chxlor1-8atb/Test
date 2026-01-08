@@ -16,7 +16,7 @@
 export async function logout(options = {}) {
     const {
         showConfirmation = true,
-        redirectTo = '/login'
+        redirectTo = '/'
     } = options;
 
     // Show confirmation dialog if requested
@@ -87,7 +87,7 @@ export async function logout(options = {}) {
  * Useful for automatic logout (session expired, unauthorized, etc.)
  * @param {string} redirectTo - URL to redirect after logout
  */
-export async function forceLogout(redirectTo = '/login') {
+export async function forceLogout(redirectTo = '/') {
     return logout({
         showConfirmation: false,
         redirectTo
@@ -165,9 +165,9 @@ export async function requireAuth(router = null) {
 
     if (!authenticated) {
         if (router) {
-            router.push('/login');
+            router.push('/');
         } else {
-            window.location.href = '/login';
+            window.location.href = '/';
         }
         return null;
     }

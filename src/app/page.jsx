@@ -4,9 +4,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import '../../styles/login-base.css';
-import '../../styles/login-responsive.css';
-import '../../styles/login-slide.css';
+import '../styles/login-base.css';
+import '../styles/login-responsive.css';
+import '../styles/login-slide.css';
+import { checkAuth } from '@/utils/auth';
 
 // --- Custom Hook: Slider Logic ---
 function useSlider(unlocked, loading, onUnlock) {
@@ -105,6 +106,24 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [unlocked, setUnlocked] = useState(false);
     const [loginSuccess, setLoginSuccess] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
+
+    // Check if already authenticated
+    useEffect(() => {
+        const verifyAuth = async () => {
+             try {
+                const { authenticated } = await checkAuth();
+                if (authenticated) {
+                    router.replace('/dashboard');
+                } else {
+                    setCheckingAuth(false);
+                }
+             } catch (e) {
+                 setCheckingAuth(false);
+             }
+        };
+        verifyAuth();
+    }, [router]);
 
     // Ref to hold the handleLogin function to break circular dependency with useSlider
     const handleLoginRef = useRef(null);
@@ -199,6 +218,19 @@ export default function LoginPage() {
             localStorage.removeItem('rememberMe');
         }
     };
+
+    if (checkingAuth) {
+         return (
+            <div className="login-body">
+                <div className="bg-shapes">
+                    <div className="shape shape--1"></div>
+                    <div className="shape shape--2"></div>
+                    <div className="shape shape--3"></div>
+                </div>
+                 {/* Invisible loading state or minimal spinner could go here if needed */}
+            </div>
+         );
+    }
 
     return (
         <div className="login-body">

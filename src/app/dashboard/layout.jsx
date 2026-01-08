@@ -66,12 +66,12 @@ export default function DashboardLayout({ children }) {
         try {
             const { authenticated, user: authUser } = await checkAuthUtil();
             if (!authenticated) {
-                router.push('/login');
+                router.push('/');
                 return;
             }
             setUser(authUser);
         } catch {
-            router.push('/login');
+            router.push('/');
         } finally {
             setLoading(false);
         }
