@@ -5,3 +5,4 @@
 
 export * from './formatters';
 export * from './alerts';
+export * from './auth';

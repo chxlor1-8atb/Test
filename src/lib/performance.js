@@ -83,7 +83,6 @@ export const queryCache = new SimpleCache();
 export const CACHE_KEYS = {
     LICENSE_TYPES: 'license-types',
     DASHBOARD_STATS: 'dashboard-stats',
-    NOTIFICATION_SETTINGS: 'notification-settings',
 };
 
 /**

@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { formatThaiDateFull } from '@/utils/formatters';
+import { logout, checkAuth as checkAuthUtil } from '@/utils/auth';
 import '../../styles/style.css';
 import '../../styles/sweetalert-custom.css';
 import '../../styles/toast.css';
@@ -56,29 +58,18 @@ export default function DashboardLayout({ children }) {
 
     const updateDateTime = () => {
         const d = new Date();
-        setCurrentDate(d.toLocaleDateString('th-TH', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        }));
+        const weekday = d.toLocaleDateString('th-TH', { weekday: 'long' });
+        setCurrentDate(`${weekday} ${formatThaiDateFull(d)}`);
     };
 
     const checkAuth = async () => {
         try {
-            const res = await fetch('/api/auth?action=check', {
-                cache: 'no-store',
-                headers: {
-                    'Pragma': 'no-cache',
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            const data = await res.json();
-            if (!data.success) {
+            const { authenticated, user: authUser } = await checkAuthUtil();
+            if (!authenticated) {
                 router.push('/login');
                 return;
             }
-            setUser(data.user);
+            setUser(authUser);
         } catch {
             router.push('/login');
         } finally {
@@ -86,26 +77,8 @@ export default function DashboardLayout({ children }) {
         }
     };
 
-    const handleLogout = async () => {
-        // Dynamic import Swal to reduce initial bundle
-        const Swal = (await import('sweetalert2')).default;
-        
-        const result = await Swal.fire({
-            title: 'ยืนยันการออกจากระบบ',
-            text: "คุณต้องการออกจากระบบหรือไม่?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก'
-        });
-
-        if (result.isConfirmed) {
-            await fetch('/api/auth?action=logout', { method: 'POST' });
-            router.push('/login');
-        }
-    };
+    // Use centralized logout function
+    const handleLogout = () => logout();
 
     if (loading) {
         return (

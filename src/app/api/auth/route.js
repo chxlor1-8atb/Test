@@ -7,28 +7,7 @@ import { NextResponse } from 'next/server';
 import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
 
 // Cloudflare Turnstile Verification
-async function verifyTurnstile(token) {
-    const secretKey = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA'; // Use testing key as fallback/dev
-    
-    if (!token) return false;
 
-    try {
-        const formData = new FormData();
-        formData.append('secret', secretKey);
-        formData.append('response', token);
-
-        const result = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-            method: 'POST',
-            body: formData,
-        });
-
-        const outcome = await result.json();
-        return outcome.success;
-    } catch (e) {
-        console.error('Turnstile verification error:', e);
-        return false;
-    }
-}
 
 export const dynamic = 'force-dynamic';
 
@@ -77,19 +56,6 @@ async function handleLogin(request) {
     const data = await request.json();
     const username = (data.username || '').trim();
     const password = data.password || '';
-    const turnstileToken = data['cf-turnstile-response'];
-
-    // 1. Verify Turnstile CAPTCHA
-    const isHuman = await verifyTurnstile(turnstileToken);
-    
-    // In development mode, you might want to skip this or use a specific flag
-    // But for security, we enforce it if a token is expected
-    if (!isHuman && process.env.NODE_ENV === 'production') {
-        return NextResponse.json({
-            success: false,
-            message: 'การตรวจสอบความปลอดภัยล้มเหลว (CAPTCHA Failed)'
-        });
-    }
 
     if (!username || !password) {
         return NextResponse.json({
@@ -152,22 +118,48 @@ async function handleLogin(request) {
 }
 
 async function handleLogout() {
-    const cookieStore = await cookies();
-    const session = await getIronSession(cookieStore, sessionOptions);
+    try {
+        const cookieStore = await cookies();
+        const session = await getIronSession(cookieStore, sessionOptions);
 
-    // Log logout activity before destroying session
-    if (session.userId) {
-        await logActivity({
-            userId: session.userId,
-            action: ACTIVITY_ACTIONS.LOGOUT,
-            entityType: ENTITY_TYPES.AUTH,
-            details: `ออกจากระบบ: ${session.username}`
-        });
+        // Log logout activity before destroying session
+        if (session.userId) {
+            await logActivity({
+                userId: session.userId,
+                action: ACTIVITY_ACTIONS.LOGOUT,
+                entityType: ENTITY_TYPES.AUTH,
+                details: `ออกจากระบบ: ${session.username}`
+            });
+        }
+
+        // Destroy the session - this clears all session data
+        session.destroy();
+        
+        // Save the destroyed session to update the cookie
+        await session.save();
+
+        // Return success response with no-cache headers and cookie deletion
+        const response = new NextResponse(
+            JSON.stringify({ success: true, message: 'ออกจากระบบสำเร็จ' }),
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            }
+        );
+
+        return response;
+    } catch (error) {
+        console.error('Logout error:', error);
+        return NextResponse.json(
+            { success: false, message: 'เกิดข้อผิดพลาดในการออกจากระบบ' },
+            { status: 500 }
+        );
     }
-
-    session.destroy();
-
-    return NextResponse.json({ success: true, message: 'ออกจากระบบสำเร็จ' });
 }
 
 async function checkAuth() {

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { formatThaiDateShort } from '@/utils/formatters';
 
 const DAYS_TH = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 const DAYS_EN = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -96,16 +97,8 @@ export default function DatePicker({
         setIsOpen(false);
     };
 
-    // Format display date
-    const formatDisplayDate = (dateStr) => {
-        if (!dateStr) return '';
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('th-TH', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    };
+    // Format display date - use shared formatter
+    const formatDisplayDate = formatThaiDateShort;
 
     // Generate calendar days
     const renderCalendar = () => {

@@ -19,6 +19,21 @@ export const formatThaiDate = (dateString) => {
 };
 
 /**
+ * Formats a date string to Thai short format (DD/MM/YYYY)
+ * @param {string} dateString - ISO date string
+ * @returns {string} Formatted date (e.g., "03/01/2569")
+ */
+export const formatThaiDateShort = (dateString) => {
+    if (!dateString) return '-';
+
+    return new Date(dateString).toLocaleDateString('th-TH', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+};
+
+/**
  * Formats a date string to full Thai locale format
  * @param {string} dateString - ISO date string
  * @returns {string} Full formatted date (e.g., "3 มกราคม 2026")

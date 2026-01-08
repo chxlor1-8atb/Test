@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import Script from 'next/script';
+
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import '../../styles/login-base.css';
@@ -131,15 +131,12 @@ export default function LoginPage() {
         slider.maximizeSlider();
 
         try {
-            const captchaResponse = document.querySelector('[name="cf-turnstile-response"]')?.value;
-
             const res = await fetch('/api/auth?action=login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username,
-                    password,
-                    'cf-turnstile-response': captchaResponse
+                    password
                 })
             });
 
@@ -156,7 +153,6 @@ export default function LoginPage() {
             } else {
                 setError(data.message || 'เข้าสู่ระบบไม่สำเร็จ');
                 slider.resetSlider();
-                if (window.turnstile) window.turnstile.reset();
             }
         } catch (err) {
             setError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
@@ -206,7 +202,7 @@ export default function LoginPage() {
 
     return (
         <div className="login-body">
-            <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+
 
             {/* Background Effects */}
             <div className="bg-shapes">
@@ -255,7 +251,7 @@ export default function LoginPage() {
                                 <div className="features__list">
                                     <FeatureTag color="purple" icon="check" text="จัดการร้านค้า" />
                                     <FeatureTag color="blue" icon="check" text="บันทึกใบอนุญาต" />
-                                    <FeatureTag color="green" icon="check" text="แจ้งเตือน Telegram" />
+                                    <FeatureTag color="green" icon="check" text="แจ้งเตือนหมดอายุ" />
                                     <FeatureTag color="orange" icon="check" text="Export CSV/PDF" />
                                 </div>
                             </div>
@@ -314,10 +310,7 @@ export default function LoginPage() {
                                 </label>
                             </div>
 
-                            {/* Cloudflare Turnstile CAPTCHA */}
-                            <div id="captchaContainer" className="captcha-container">
-                                <div className="cf-turnstile" data-sitekey="0x4AAAAAACGLJgpZShtyGkT0" data-theme="light"></div>
-                            </div>
+
 
                             <div className="btn-wrapper">
                                 <div

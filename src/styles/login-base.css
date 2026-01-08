@@ -1606,7 +1606,8 @@ html {
     margin-bottom: 1rem;
     display: flex;
     justify-content: center;
-    min-height: 65px; /* Reserve space for Turnstile to prevent CLS */
+    align-items: center;
+    min-height: 65px;
 }
 
 .error-message {

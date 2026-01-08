@@ -237,26 +237,6 @@ export function useExpiringLicenses() {
     };
 }
 
-// ===== Notifications Hooks =====
-
-/**
- * Hook for notification settings
- */
-export function useNotificationSettings() {
-    const { data, error, isLoading, mutate } = useSWR(
-        '/api/notifications?action=settings',
-        fetcher,
-        CONFIG.static
-    );
-    
-    return {
-        settings: data?.settings,
-        isLoading,
-        isError: error,
-        refresh: mutate,
-    };
-}
-
 // ===== Activity Logs Hooks =====
 
 /**

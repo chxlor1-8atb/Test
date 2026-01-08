@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CHANGELOG, getChangeTypeBadge, getLatestVersion } from '@/constants/changelog';
+import { formatThaiDate, formatThaiDateFull } from '@/utils/formatters';
 
 /**
  * PatchNotesModal Component
@@ -106,11 +107,7 @@ export default function PatchNotesModal({ isOpen, onClose }) {
                                     v{log.version}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                                    {new Date(log.date).toLocaleDateString('th-TH', {
-                                        day: 'numeric',
-                                        month: 'short',
-                                        year: 'numeric'
-                                    })}
+                                    {formatThaiDate(log.date)}
                                 </div>
                             </button>
                         ))}
@@ -142,11 +139,7 @@ export default function PatchNotesModal({ isOpen, onClose }) {
                                             v{selectedChangelog.version}
                                         </span>
                                         <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                                            {new Date(selectedChangelog.date).toLocaleDateString('th-TH', {
-                                                day: 'numeric',
-                                                month: 'long',
-                                                year: 'numeric'
-                                            })}
+                                            {formatThaiDateFull(selectedChangelog.date)}
                                         </span>
                                     </div>
                                     <h3 style={{

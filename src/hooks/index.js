@@ -23,7 +23,6 @@ export {
     useLicenseBreakdown,
     useLicense,
     useExpiringLicenses,
-    useNotificationSettings,
     useActivityLogs,
     useMutation,
     prefetch,
