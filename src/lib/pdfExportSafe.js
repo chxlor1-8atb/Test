@@ -42,8 +42,13 @@ async function getPdfMake() {
         }
 
         // Fix for vfs_fonts: It expects a global pdfMake object to exist
-        if (typeof window !== 'undefined' && !window.pdfMake) {
+        if (typeof window !== 'undefined') {
             window.pdfMake = pdfMake;
+        }
+
+        // Initialize vfs immediately to prevent "read of undefined" errors
+        if (!pdfMake.vfs) {
+            pdfMake.vfs = {};
         }
 
         // Try to load vfs_fonts safely
@@ -52,18 +57,23 @@ async function getPdfMake() {
             const pdfFonts = pdfFontsModule.default || pdfFontsModule;
             
             // Robust vfs assignment
-            const vfs = (pdfFonts && pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) || (pdfFonts && pdfFonts.vfs);
-            if (vfs) {
-                pdfMake.vfs = vfs;
-            } else {
-                 // Fallback: Check if vfs is already on pdfMake (side-effect) or initialize empty
-                if (!pdfMake.vfs) {
-                    pdfMake.vfs = {};
+            let vfs = null;
+            if (pdfFonts) {
+                if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
+                    vfs = pdfFonts.pdfMake.vfs;
+                } else if (pdfFonts.vfs) {
+                    vfs = pdfFonts.vfs;
+                } else if (window.pdfMake && window.pdfMake.vfs) {
+                    vfs = window.pdfMake.vfs;
                 }
+            }
+
+            if (vfs) {
+                pdfMake.vfs = { ...pdfMake.vfs, ...vfs };
             }
         } catch (fontError) {
             console.warn('Failed to load vfs_fonts:', fontError);
-            pdfMake.vfs = {};
+            // vfs is already initialized to {} above, so we are safe
         }
 
         // Assign standard fonts map
