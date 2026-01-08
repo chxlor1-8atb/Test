@@ -41,6 +41,11 @@ async function getPdfMake() {
             throw new Error('Failed to load pdfMake module');
         }
 
+        // Fix for vfs_fonts: It expects a global pdfMake object to exist
+        if (typeof window !== 'undefined' && !window.pdfMake) {
+            window.pdfMake = pdfMake;
+        }
+
         // Dynamic import vfs_fonts (Required for default fonts)
         let pdfFonts;
         try {
@@ -51,15 +56,17 @@ async function getPdfMake() {
         }
 
         // Initialize vfs
-        if (pdfFonts) {
-             if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
-                pdfMake.vfs = pdfFonts.pdfMake.vfs;
-            } else if (pdfFonts.vfs) {
-                pdfMake.vfs = pdfFonts.vfs;
-            } else {
-                pdfMake.vfs = pdfFonts;
-            }
-        } else if (!pdfMake.vfs) {
+        const vfs = (pdfFonts && pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) || (pdfFonts && pdfFonts.vfs);
+        if (vfs) {
+            pdfMake.vfs = vfs;
+        } else if (pdfFonts && !pdfFonts.pdfMake && !pdfFonts.vfs) {
+            // Edge case: pdfFonts might be the vfs object itself (rare but possible in some builds)
+            // But usually vfs is a map of filenames.
+            // Let's rely on standard structures first.
+            pdfMake.vfs = pdfFonts;
+        } 
+        
+        if (!pdfMake.vfs) {
             pdfMake.vfs = {};
         }
 

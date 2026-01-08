@@ -41,18 +41,25 @@ async function getPdfMake() {
             throw new Error('Failed to load pdfMake module');
         }
 
+        // Fix for vfs_fonts: It expects a global pdfMake object to exist
+        if (typeof window !== 'undefined' && !window.pdfMake) {
+            window.pdfMake = pdfMake;
+        }
+
         // Try to load vfs_fonts safely
         try {
             const pdfFontsModule = await import('pdfmake/build/vfs_fonts');
             const pdfFonts = pdfFontsModule.default || pdfFontsModule;
             
-            if (pdfFonts && pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
-                pdfMake.vfs = pdfFonts.pdfMake.vfs;
-            } else if (pdfFonts && pdfFonts.vfs) {
-                pdfMake.vfs = pdfFonts.vfs;
+            // Robust vfs assignment
+            const vfs = (pdfFonts && pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) || (pdfFonts && pdfFonts.vfs);
+            if (vfs) {
+                pdfMake.vfs = vfs;
             } else {
-                console.warn('vfs_fonts loaded but vfs not found, initializing empty vfs');
-                pdfMake.vfs = {};
+                 // Fallback: Check if vfs is already on pdfMake (side-effect) or initialize empty
+                if (!pdfMake.vfs) {
+                    pdfMake.vfs = {};
+                }
             }
         } catch (fontError) {
             console.warn('Failed to load vfs_fonts:', fontError);
