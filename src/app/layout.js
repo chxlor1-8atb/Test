@@ -23,7 +23,7 @@ export const metadata = {
     title: 'ระบบจัดการใบอนุญาตร้านค้า',
     description: 'Shop License Management System',
     icons: {
-        icon: '/favicon.png',
+        icon: '/image/favicon.png',
     },
 };
 
