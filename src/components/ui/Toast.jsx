@@ -294,13 +294,13 @@ export const toast = {
     clear: () => toastManager.clear()
 };
 
-// Convenience functions matching alerts.js API
-export const showSuccess = (message, title = 'สำเร็จ') => toast.success(title, message);
-export const showError = (message, title = 'เกิดข้อผิดพลาด') => toast.error(title, message);
-export const showWarning = (message, title = 'คำเตือน') => toast.warning(title, message);
-export const showInfo = (message, title = 'แจ้งเตือน') => toast.info(title, message);
+/**
+ * @deprecated Use showSuccess, showError, showWarning, showInfo from '@/utils/alerts' instead
+ * Those functions have additional features like pending delete with undo
+ */
 
 // Export for initialization
 export const initToast = () => toastManager.init();
 
 export default toast;
+

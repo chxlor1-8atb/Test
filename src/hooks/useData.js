@@ -7,22 +7,7 @@
 
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
-
-// ===== Fetcher Functions =====
-
-/**
- * Default fetcher for GET requests
- */
-const fetcher = async (url) => {
-    const res = await fetch(url);
-    if (!res.ok) {
-        const error = new Error('An error occurred while fetching data.');
-        error.info = await res.json().catch(() => ({}));
-        error.status = res.status;
-        throw error;
-    }
-    return res.json();
-};
+import { fetcher, swrConfigVariants as CONFIG } from '@/lib/swr-config';
 
 /**
  * Fetcher for POST/PUT/DELETE requests
@@ -41,36 +26,6 @@ const mutationFetcher = async (url, { arg }) => {
         throw error;
     }
     return res.json();
-};
-
-// ===== SWR Configuration Presets =====
-
-const CONFIG = {
-    // For static data (license types, settings)
-    static: {
-        revalidateOnFocus: false,
-        revalidateOnReconnect: false,
-        refreshInterval: 0,
-        dedupingInterval: 300000, // 5 minutes
-    },
-    // For dashboard data
-    dashboard: {
-        revalidateOnFocus: true,
-        refreshInterval: 60000, // 1 minute
-        dedupingInterval: 5000,
-    },
-    // For real-time data (notifications)
-    realtime: {
-        revalidateOnFocus: true,
-        refreshInterval: 30000, // 30 seconds
-        dedupingInterval: 2000,
-    },
-    // For lists with pagination
-    list: {
-        revalidateOnFocus: false,
-        refreshInterval: 0,
-        dedupingInterval: 10000,
-    },
 };
 
 // ===== Dashboard Hooks =====
@@ -144,6 +99,47 @@ export function useLicenseTypes() {
         isLoading,
         isError: error,
         refresh: mutate,
+    };
+}
+
+/**
+ * Hook for dropdown data (shops + license types)
+ * Uses SWR for caching and deduplication
+ * Pre-formats options for CustomSelect component
+ */
+export function useDropdownData() {
+    const { data: shopsData, isLoading: shopsLoading } = useSWR(
+        '/api/shops?limit=1000',
+        fetcher,
+        CONFIG.static
+    );
+    
+    const { data: typesData, isLoading: typesLoading } = useSWR(
+        '/api/license-types',
+        fetcher,
+        CONFIG.static
+    );
+    
+    const shops = shopsData?.shops || [];
+    const licenseTypes = typesData?.types || typesData?.licenseTypes || [];
+    
+    // Pre-formatted options for CustomSelect
+    const shopOptions = shops.map(s => ({
+        value: s.id,
+        label: s.shop_name || s.name
+    }));
+    
+    const typeOptions = licenseTypes.map(t => ({
+        value: t.id,
+        label: t.name
+    }));
+    
+    return {
+        shops,
+        licenseTypes,
+        shopOptions,
+        typeOptions,
+        loading: shopsLoading || typesLoading,
     };
 }
 

@@ -76,6 +76,14 @@ export const swrConfigVariants = {
         revalidateOnFocus: true,
     },
     
+    // For lists with pagination (shops, licenses, logs)
+    list: {
+        ...swrConfig,
+        refreshInterval: 0,
+        revalidateOnFocus: false,
+        dedupingInterval: 10000,     // Dedupe for 10 seconds
+    },
+    
     // For heavy data (reports, exports)
     heavy: {
         ...swrConfig,

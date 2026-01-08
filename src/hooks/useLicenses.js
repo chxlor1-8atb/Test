@@ -1,3 +1,11 @@
+/**
+ * @deprecated This file is deprecated as of 2026-01-08
+ * Please use useLicenses from '@/hooks/useData' instead.
+ * The SWR-based version provides better caching and deduplication.
+ * 
+ * This file will be removed in a future update.
+ */
+
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
