@@ -181,6 +181,6 @@ async function checkAuth() {
 
     return NextResponse.json(
         { success: false, message: 'Not authenticated' },
-        { status: 401 }
+        { status: 200 }
     );
 }
