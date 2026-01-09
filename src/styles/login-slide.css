@@ -155,43 +155,83 @@
    SUCCESS STATE (UNLOCKED)
    ==================================== */
 
+/* ====================================
+   SUCCESS STATE (UNLOCKED) - Morphing Button
+   ==================================== */
+
 .slide-container.unlocked {
-    background: rgba(16, 185, 129, 0.12);
-    border-color: rgba(16, 185, 129, 0.4);
-    pointer-events: none;
+    background-color: var(--green, #10B981) !important;
+    border-color: transparent;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    transform: scale(1.02);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .slide-container.unlocked .slider-btn {
     left: calc(100% - 48px) !important;
-    /* Adjusted for new button size */
-    background: linear-gradient(145deg, #34D399 0%, #10B981 50%, #059669 100%);
-    transition: left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease;
-    box-shadow:
-        -3px 0 15px rgba(16, 185, 129, 0.4),
-        0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: scale(1);
+    background: #fff;
+    /* White button on green background */
+    transform: scale(0.9);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     cursor: default;
 }
 
 .slide-container.unlocked .slider-btn i::before {
     content: "\f00c";
     /* fa-check */
+    background: transparent;
 }
 
 .slide-container.unlocked .slider-btn i {
+    color: var(--green, #10B981);
+    /* Green checkmark */
+    font-size: 1.2rem;
+    transform: rotate(360deg);
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     animation: none !important;
-}
-
-.slide-container.unlocked .slide-bg {
-    width: 100% !important;
-    background: linear-gradient(90deg,
-            rgba(16, 185, 129, 0.1) 0%,
-            rgba(16, 185, 129, 0.2) 100%);
-    transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .slide-container.unlocked .slide-text {
     opacity: 0;
+    transition: opacity 0.2s;
+}
+
+/* Success Text */
+.slide-container.unlocked::after {
+    content: "เข้าสู่ระบบสำเร็จ";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    padding-right: 44px;
+    /* compensate for button button */
+    opacity: 0;
+    animation: fadeInSuccess 0.5s forwards 0.3s;
+    letter-spacing: 0.5px;
+}
+
+@keyframes fadeInSuccess {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+}
+
+.slide-container.unlocked .slide-bg {
+    opacity: 0;
+    /* Hide the progress bg since the whole container is green */
 }
 
 /* ====================================
@@ -297,4 +337,127 @@
 .slide-container.reset .slide-bg {
     width: 0 !important;
     transition: width 0.3s ease;
+}
+/* Card Exit Animation */
+.login-card.success-exit {
+    animation: cardExit 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    pointer-events: none;
+}
+
+@keyframes cardExit {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.1) translateY(-20px);
+        filter: blur(10px);
+    }
+}
+
+/* ====================================
+   PREMIUM TOAST DESIGN (Floating Pill)
+   ==================================== */
+
+div:where(.swal2-container) {
+    z-index: 9999 !important;
+    padding: 1rem !important;
+}
+
+div:where(.swal2-popup).glass-toast {
+    box-sizing: border-box !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    width: auto !important;
+    min-width: 340px !important;
+    padding: 0.75rem 1.25rem !important;
+    border-radius: 99px !important; /* Pill Shape */
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 10px 15px -3px rgba(0, 0, 0, 0.05),
+        0 0 0 1px rgba(0,0,0,0.02) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    
+    /* Elegant enter animation */
+    animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Accent Left Border / Glow */
+div:where(.swal2-popup).glass-toast::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    bottom: 6px;
+    width: 4px;
+    background: var(--green, #10B981);
+    border-radius: 10px;
+}
+
+/* Icon Styling - Minimal & Clean */
+div:where(.swal2-popup).glass-toast .swal2-icon {
+    border: none !important;
+    margin: 0 !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    display: flex !important;
+}
+
+div:where(.swal2-popup).glass-toast .swal2-icon .swal2-success-circular-line-left,
+div:where(.swal2-popup).glass-toast .swal2-icon .swal2-success-circular-line-right,
+div:where(.swal2-popup).glass-toast .swal2-icon .swal2-success-fix {
+    display: none !important; /* Hide default circle animations for cleaner look */
+}
+
+div:where(.swal2-popup).glass-toast .swal2-icon.swal2-success {
+    background: rgba(16, 185, 129, 0.15);
+    border-radius: 50%;
+    padding: 4px;
+}
+
+div:where(.swal2-popup).glass-toast .swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: var(--green, #10B981) !important;
+}
+
+/* Typography */
+div:where(.swal2-popup).glass-toast .swal2-title {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: var(--text-primary, #1c1917) !important;
+    line-height: 1.2 !important;
+    text-align: left !important;
+}
+
+div:where(.swal2-popup).glass-toast .swal2-html-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0.85rem !important;
+    color: var(--text-secondary, #57534e) !important;
+    line-height: 1.2 !important;
+    text-align: left !important;
+    display: block !important;
+}
+
+/* Hide Default Progress Bar - We use a subtle glow instead */
+div:where(.swal2-popup).glass-toast .swal2-timer-progress-bar-container {
+    display: none !important;
 }

@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect } from "react";
+
 import { useLoginSlider } from "@/hooks/useLoginSlider";
 import { useAuthLogin } from "@/hooks/useAuthLogin";
 import { InputGroup } from "./InputGroup";
 import { LoginSlider } from "./LoginSlider";
 import { WaveDivider } from "./WaveDivider";
-import { PageTransitionOverlay } from "./PageTransitionOverlay";
 
 export const LoginForm = () => {
   const {
@@ -19,22 +19,34 @@ export const LoginForm = () => {
     loading,
     error,
     unlocked,
-    loginSuccess,
     submitLogin,
   } = useAuthLogin();
 
   const onUnlock = useCallback(async () => {
-    const success = await submitLogin();
-    // Internal state (loginSuccess, error) handles the UI feedback.
+    await submitLogin();
   }, [submitLogin]);
 
   const slider = useLoginSlider(unlocked, loading, onUnlock);
 
+  /* Removed Toast State and useEffects related to Toast */
+
+  // Only keep the error reset logic
   useEffect(() => {
     if (error) {
       slider.resetSlider();
     }
-  }, [error, slider.resetSlider]);
+  }, [error, slider]);
+
+  // Only keep the success animation logic
+  useEffect(() => {
+    if (unlocked) {
+      // Card Exit Animation
+      const card = document.querySelector(".login-card");
+      if (card) {
+        card.classList.add("success-exit");
+      }
+    }
+  }, [unlocked]);
 
   const handleManualSubmit = async () => {
     slider.maximizeSlider();
@@ -44,18 +56,10 @@ export const LoginForm = () => {
   return (
     <React.Fragment>
       <WaveDivider />
-
       <header className="form-header">
         <h2 className="form-header__title">ยินดีต้อนรับกลับมา</h2>
         <p className="form-header__subtitle">เข้าสู่ระบบเพื่อดำเนินการต่อ</p>
       </header>
-
-      {error && (
-        <div className="error-message show" style={{ display: "flex" }}>
-          <i className="fas fa-exclamation-circle"></i>
-          <span>{error}</span>
-        </div>
-      )}
 
       <form
         onSubmit={(e) => {
@@ -106,8 +110,6 @@ export const LoginForm = () => {
           error={error}
         />
       </form>
-
-      <PageTransitionOverlay success={loginSuccess} />
     </React.Fragment>
   );
 };

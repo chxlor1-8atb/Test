@@ -32,12 +32,20 @@ export async function logout(options = {}) {
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'ออกจากระบบ',
             cancelButtonText: 'ยกเลิก',
-            reverseButtons: true
+            reverseButtons: true,
+            customClass: {
+                popup: 'colored-toast-modal', // Make sure to add this if needed, or just rely on default
+                // For a proper toast match, we might want to just let the modal be a modal.
+                // But let's add the TOAST after confirmation.
+            }
         });
 
         if (!result.isConfirmed) {
             return false;
         }
+        
+        // Show "Logging out" Toast (Red Style)
+    /* Toast logic removed */
     }
 
     try {

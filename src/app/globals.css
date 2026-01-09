@@ -10,3 +10,5 @@ body {
   /* Use the CSS variables from next/font */
   font-family: var(--font-noto-thai), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+
+
