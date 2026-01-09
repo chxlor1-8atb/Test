@@ -1,13 +1,8 @@
-import bcrypt from 'bcryptjs';
+import { NextResponse } from 'next/server';
+import { authenticateUser, createSession, logoutUser } from '@/lib/auth-service';
 import { cookies } from 'next/headers';
 import { getIronSession } from 'iron-session';
-import { fetchOne } from '@/lib/db';
 import { sessionOptions } from '@/lib/session';
-import { NextResponse } from 'next/server';
-import { logActivity, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/activityLogger';
-
-// Cloudflare Turnstile Verification
-
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +34,7 @@ export async function GET(request) {
         const action = searchParams.get('action');
 
         if (action === 'check') {
-            return await checkAuth();
+            return await handleCheckAuth();
         }
 
         return NextResponse.json({ success: false, message: 'Invalid action' });
@@ -53,93 +48,36 @@ export async function GET(request) {
 }
 
 async function handleLogin(request) {
-    const data = await request.json();
-    const username = (data.username || '').trim();
-    const password = data.password || '';
+    try {
+        const data = await request.json();
+        const username = (data.username || '').trim();
+        const password = data.password || '';
 
-    if (!username || !password) {
+        const user = await authenticateUser(username, password);
+        await createSession(user);
+
+        return NextResponse.json({
+            success: true,
+            message: 'เข้าสู่ระบบสำเร็จ',
+            user: {
+                id: user.id,
+                username: user.username,
+                full_name: user.full_name,
+                role: user.role,
+            },
+        });
+    } catch (error) {
         return NextResponse.json({
             success: false,
-            message: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน'
+            message: error.message || 'เข้าสู่ระบบไม่สำเร็จ'
         });
     }
-
-    // Find user by username
-    const user = await fetchOne(
-        'SELECT * FROM users WHERE username = $1',
-        [username]
-    );
-
-    if (!user) {
-        return NextResponse.json({
-            success: false,
-            message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
-        });
-    }
-
-    // Verify password
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-        return NextResponse.json({
-            success: false,
-            message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
-        });
-    }
-
-    // Create session using cookies()
-    const cookieStore = await cookies();
-    const session = await getIronSession(cookieStore, sessionOptions);
-
-    session.userId = user.id;
-    session.username = user.username;
-    session.fullName = user.full_name;
-    session.role = user.role;
-    session.loginTime = Date.now();
-    await session.save();
-
-    // Log login activity
-    await logActivity({
-        userId: user.id,
-        action: ACTIVITY_ACTIONS.LOGIN,
-        entityType: ENTITY_TYPES.AUTH,
-        details: `เข้าสู่ระบบด้วยชื่อผู้ใช้: ${user.username}`
-    });
-
-    return NextResponse.json({
-        success: true,
-        message: 'เข้าสู่ระบบสำเร็จ',
-        user: {
-            id: user.id,
-            username: user.username,
-            full_name: user.full_name,
-            role: user.role,
-        },
-    });
 }
 
 async function handleLogout() {
     try {
-        const cookieStore = await cookies();
-        const session = await getIronSession(cookieStore, sessionOptions);
-
-        // Log logout activity before destroying session
-        if (session.userId) {
-            await logActivity({
-                userId: session.userId,
-                action: ACTIVITY_ACTIONS.LOGOUT,
-                entityType: ENTITY_TYPES.AUTH,
-                details: `ออกจากระบบ: ${session.username}`
-            });
-        }
-
-        // Destroy the session - this clears all session data
-        session.destroy();
-        
-        // Save the destroyed session to update the cookie
-        await session.save();
-
-        // Return success response with no-cache headers and cookie deletion
-        const response = new NextResponse(
+        await logoutUser();
+        return new NextResponse(
             JSON.stringify({ success: true, message: 'ออกจากระบบสำเร็จ' }),
             {
                 status: 200,
@@ -151,8 +89,6 @@ async function handleLogout() {
                 }
             }
         );
-
-        return response;
     } catch (error) {
         console.error('Logout error:', error);
         return NextResponse.json(
@@ -162,7 +98,12 @@ async function handleLogout() {
     }
 }
 
-async function checkAuth() {
+async function handleCheckAuth() {
+    // Ideally this should also be in auth-service as 'getSessionUser' but keeping here is acceptable for now
+    // or I can move it to auth-service as getSessionUser() and return user or null.
+    // But checkAuth returns a Response object in the original code? 
+    // No, original checkAuth returned NextResponse.
+    
     const cookieStore = await cookies();
     const session = await getIronSession(cookieStore, sessionOptions);
 
